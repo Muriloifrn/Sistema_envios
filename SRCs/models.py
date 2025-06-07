@@ -8,7 +8,7 @@
 from django.db import models
 
 class Unidade(models.Model):
-    cnpj = models.CharField("CNPJ", db_column='CNPJ', primary_key=True, max_length=18)  # Field name made lowercase.
+    cnCentro de custo:pj = models.CharField("CNPJ", db_column='CNPJ', primary_key=True, max_length=18)  # Field name made lowercase.
     centro_custo = models.IntegerField("CENTRO DE CUSTO")
     cep = models.CharField("CEP", max_length=10)
     bairro = models.CharField("BAIRRO", max_length=50)
