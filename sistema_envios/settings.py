@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'SRCs',
-    'rolepermissions'
+    'rolepermissions',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'sistema_envios.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'src',
+        'NAME': 'banco_src',
         'USER': 'root',  
         'PASSWORD': 'bd1234',
         'HOST': 'localhost',

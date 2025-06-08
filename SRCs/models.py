@@ -60,7 +60,7 @@ class Envio(models.Model):
     produto = models.ForeignKey('Produto', models.DO_NOTHING, verbose_name="PRODUTO")
     numero_autorizacao = models.CharField("NÚMERO DE AUTORIZAÇÃO", max_length=20)
     data_solicitacao = models.DateField("DATA DA SOLICITAÇÃO")
-    status = models.CharField(max_length=9, blank=True, null=True)
+    status_envio = models.CharField(max_length=9, blank=True, null=True)
 
     def __str__(self):
         return f"{self.etiqueta}"
@@ -82,7 +82,7 @@ class Rateio(models.Model):
     valor_unitario = models.DecimalField("VALOR UNITÁRIO", max_digits=10, decimal_places=2, blank=True, null=True)
     quantidade = models.IntegerField("QUANTIDADE", blank=True, null=True)
     peso = models.DecimalField("PESO", max_digits=10, decimal_places=2, blank=True, null=True)
-    servicos_adicionais = models.DecimalField("SERVIÇOS ADICIONAIS", max_digits=10, decimal_places=2, blank=True, null=True)
+    servico_adicionais = models.DecimalField("SERVIÇOS ADICIONAIS", max_digits=10, decimal_places=2, blank=True, null=True)
     desconto = models.DecimalField("DESCONTO", max_digits=10, decimal_places=2, blank=True, null=True)
     valor_liquido = models.DecimalField("VALOR LIQUIDO", max_digits=10, decimal_places=2, blank=True, null=True)
 
