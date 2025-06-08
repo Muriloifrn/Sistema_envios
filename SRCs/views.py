@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rolepermissions.decorators import has_permission_decorator
+from .forms import formularioUnidade, formularioUser
+from .models import Unidade, Usuario
 
 def index(request):
     return render(request, 'SRCs/index.html')
@@ -9,19 +11,37 @@ def home(request):
 
 @has_permission_decorator('cadastrar_user')
 def user(request):
-    return render(request, 'SRCs/user.html')
+    usuarios = Usuario.objects.all()
+    return render(request, 'SRCs/user.html', {'usuarios': usuarios})
 
 @has_permission_decorator('cadastrar_user')
 def cadastro_user(request):
-    return render(request, 'SRCs/fomr_user.html')
+    if request.method == 'POST':
+        form = formularioUser(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('user')
+    else:
+        form = formularioUser()
 
-@has_permission_decorator('cadastrar_unid')
-def unidade(request):
-    return render(request, 'SRCs/unidade.html')
+    return render(request, 'SRCs/form_user.html', {'form': form})
 
 @has_permission_decorator('cadastrar_unid')
 def cadastro_unidade(request):
-    return render(request, 'SRCs/form_und.html')
+    if request.method == 'POST':
+        form = formularioUnidade(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('unidade')
+    else:
+        form = formularioUnidade()
+
+    return render(request, 'SRCs/form_und.html', {'form': form})
+
+@has_permission_decorator('cadastrar_unid')
+def unidade(request):
+    unidades = Unidade.objects.all()
+    return render(request, 'SRCs/unidade.html', {'unidades': unidades})
 
 @has_permission_decorator('cadastrar_envio')
 def cadastro_envio(request):
@@ -35,3 +55,4 @@ def dashboard(request):
     return render(request, 'STCs/graficos.html')
 
 
+ 

@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'SRCs',
-    'rolepermissons'
+    'rolepermissions'
 ]
 
 MIDDLEWARE = [
@@ -49,7 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'rolepermissions.middleware.RolePermissionsMiddleware',
+    #'rolepermissions.middleware.RolePermissionsMiddleware',
 ]
 
 ROOT_URLCONF = 'sistema_envios.urls'
@@ -128,4 +128,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ROLEPERMISSIONS_MODULE = "sistema_envios.roles"
+ROLEPERMISSIONS_MODULE = 'sistema_envios.roles'
