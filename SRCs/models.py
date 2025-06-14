@@ -39,28 +39,17 @@ class Usuario(models.Model):
         db_table = 'usuario'
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
-
-class Produto(models.Model):
-    id = models.AutoField(primary_key=True)
-    conteudo = models.CharField("CONTEÚDO", max_length=100)
-    quantidade = models.IntegerField("QUANTIDADE")
-
-    def __str__(self):
-        return f"{self.conteudo}"
-
-    class Meta:
-        managed = False
-        db_table = 'produto'
-
+        
+    
 class Envio(models.Model):
     etiqueta = models.CharField("ETIQUETA", primary_key=True, max_length=50)
     user = models.ForeignKey('Usuario', models.DO_NOTHING, verbose_name="USUÁRIO")
     remetente = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='remetente', verbose_name="REMETENTE")
     destinatario = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='destinatario', related_name='envio_destinatario_set', verbose_name="DESTINATÁRIO")
-    produto = models.ForeignKey('Produto', models.DO_NOTHING, verbose_name="PRODUTO")
     numero_autorizacao = models.CharField("NÚMERO DE AUTORIZAÇÃO", max_length=20)
     data_solicitacao = models.DateField("DATA DA SOLICITAÇÃO")
-    status_envio = models.CharField(max_length=9, blank=True, null=True)
+    conteudo = models.CharField("CONTEÚDO", max_length=100)
+    quantidade = models.IntegerField("QUANTIDADE")
 
     def __str__(self):
         return f"{self.etiqueta}"
@@ -80,7 +69,6 @@ class Rateio(models.Model):
     unidade_postagem = models.CharField("UNIDADE POSTAGEM", max_length=100, blank=True, null=True)
     valor_declarado = models.DecimalField("VALOR DECLARADO", max_digits=10, decimal_places=2, blank=True, null=True)
     valor_unitario = models.DecimalField("VALOR UNITÁRIO", max_digits=10, decimal_places=2, blank=True, null=True)
-    quantidade = models.IntegerField("QUANTIDADE", blank=True, null=True)
     peso = models.DecimalField("PESO", max_digits=10, decimal_places=2, blank=True, null=True)
     servico_adicionais = models.DecimalField("SERVIÇOS ADICIONAIS", max_digits=10, decimal_places=2, blank=True, null=True)
     desconto = models.DecimalField("DESCONTO", max_digits=10, decimal_places=2, blank=True, null=True)
