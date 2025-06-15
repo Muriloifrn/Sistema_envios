@@ -123,6 +123,7 @@ def rateio(request):
     else:
         form = UploadFaturaForm()
     
+    rateios = Rateio.objects.select_related('etiqueta').all().order_by('-data_postagem')
     return render(request, 'SRCs/rateio.html', {'form': form, 'rateios': rateios}) 
 
 @has_permission_decorator('visualizar_graficos')

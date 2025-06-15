@@ -20,5 +20,5 @@ class UploadFaturaForm(forms.Form):
     fatura = forms.FileField(
         label='Selecione a planilha da fatura (.xlsx)',
         required=True,
-        widget=forms..ClearableFileInput(attrs={'accept': '.xlsx'})
+        widget=forms.ClearableFileInput(attrs={'accept': '.xlsx'})
     )
