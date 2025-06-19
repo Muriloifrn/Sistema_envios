@@ -5,7 +5,7 @@ from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFat
 from .models import Unidade, Usuario, Envio, Rateio
 from django.contrib import messages
 from datetime import datetime
-from decimal import Decimal 
+from decimal import Decimal, InvalidOperation
 
 
 def index(request):
@@ -60,11 +60,30 @@ def cadastro_envio(request):
 
     return render(request, 'SRCs/form_envio.html', {'form': form})
 
+def safe_decimal(valor):
+    try:
+        if valor is None:
+            return Decimal('0.00')
+
+        valor_str = str(valor).strip()
+
+        # Corrige traços ou campos com hífens
+        if valor_str in ('', '-', '–'):
+            return Decimal('0.00')
+
+        # Corrige valores com formato brasileiro: "5.553,32"
+        valor_str = valor_str.replace('R$', '').replace('.', '').replace(',', '.')
+        return Decimal(valor_str)
+    
+    except (InvalidOperation, ValueError) as e:
+        raise ValueError(f"Valor inválido para Decimal: {valor}")
+
 def rateio(request):
     if request.method == 'POST':
         form = UploadFaturaForm(request.POST, request.FILES)
         if form.is_valid():
             fatura_file = request.FILES['fatura']
+            nome_arquivo = fatura_file.name.rsplit('.', 1)[0]
             try:
                 wb = openpyxl.load_workbook(fatura_file, data_only=True)
                 ws = wb.active
@@ -73,7 +92,7 @@ def rateio(request):
                 importados = 0
 
                 #começa a ler a planilha apartir da linha 5
-                for row in ws.iter_rows(min_row=5, values_only=True):
+                for row in ws.iter_rows(min_row=6, values_only=True):
                     etiqueta_valor = row[8]
                     if not etiqueta_valor:
                         continue
@@ -88,7 +107,7 @@ def rateio(request):
                         rateio, created = Rateio.objects.get_or_create(
                             etiqueta=envio,
                             defaults={
-                                'fatura': None, 
+                                'fatura': nome_arquivo, 
                                 'titular_cartao': row[1],
                                 'servico': row[3],
                                 'data_postagem': (
@@ -97,13 +116,13 @@ def rateio(request):
                                     else row[4] if isinstance(row[4], datetime)
                                     else None
                                 ),
-                                'servico_adicionais': Decimal(row[5] or 0),
+                                'servico_adicionais': safe_decimal(row[5]),
                                 'unidade_postagem': row[6],
-                                'valor_declarado': Decimal(row[15] or 0),
-                                'valor_unitario': Decimal(row[11] or 0),
-                                'peso': Decimal(row[10] or 0),
-                                'desconto': Decimal(row[12] or 0),
-                                'valor_liquido': Decimal(row[14] or 0),
+                                'valor_declarado': safe_decimal(row[15]),
+                                'valor_unitario': safe_decimal(row[11]),
+                                'peso': safe_decimal(row[10]),
+                                'desconto': safe_decimal(row[12]),
+                                'valor_liquido': safe_decimal(row[14]),
                                 
                             }
                         )
@@ -123,8 +142,40 @@ def rateio(request):
     else:
         form = UploadFaturaForm()
     
-    rateios = Rateio.objects.select_related('etiqueta').all().order_by('-data_postagem')
-    return render(request, 'SRCs/rateio.html', {'form': form, 'rateios': rateios}) 
+    envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
+
+    dados_completos = []
+
+    for envio in envios:
+        try:
+            rateio = Rateio.objects.get(etiqueta=envio)
+        except Rateio.DoesNotExist:
+            rateio = None
+        
+        dados_completos.append({
+            'fatura': rateio.fatura if rateio else 'PENDENTE',
+            'solicitante': envio.user.nome,
+            'motivo': envio.conteudo,
+            'cartao_postagem': envio.user.cartao_postagem,
+            'titular_cartao': rateio.titular_cartao if rateio else '',
+            'servico': rateio.servico if rateio else '',
+            'numero_autorizacao': envio.numero_autorizacao,
+            'etiqueta': envio.etiqueta,
+            'data_postagem': rateio.data_postagem if rateio else '',
+            'unidade_postagem': rateio.unidade_postagem if rateio else '',
+            'remetente': envio.remetente.shopping,
+            'destinatario': envio.destinatario.shopping,
+            'valor_declarado': rateio.valor_declarado if rateio else '',
+            'valor_unitario': rateio.valor_unitario if rateio else '',
+            'quantidade': envio.quantidade,
+            'peso': rateio.peso if rateio else '',
+            'servico_adicionais': rateio.servico_adicionais if rateio else '',
+            'valor_liquido': rateio.valor_liquido if rateio else '',
+            'desconto': rateio.desconto if rateio else '',
+            'centro_custo': envio.destinatario.centro_custo,
+            'empresa': envio.destinatario.empresa,
+        })
+    return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos}) 
 
 @has_permission_decorator('visualizar_graficos')
 def dashboard(request):

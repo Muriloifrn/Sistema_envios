@@ -14,7 +14,7 @@ class formularioUser(forms.ModelForm):
 class formularioEnvio(forms.ModelForm):
     class Meta:
         model = Envio
-        fields = ('etiqueta', 'user', 'remetente', 'destinatario', 'numero_autorizacao', 'data_solicitacao', 'conteudo', 'quantidade' )
+        fields = ('etiqueta', 'user', 'remetente', 'destinatario', 'numero_autorizacao', 'data_solicitacao', 'conteudo', 'quantidade', 'motivo' )
 
 class UploadFaturaForm(forms.Form):
     fatura = forms.FileField(

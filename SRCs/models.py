@@ -50,6 +50,7 @@ class Envio(models.Model):
     data_solicitacao = models.DateField("DATA DA SOLICITAÇÃO")
     conteudo = models.CharField("CONTEÚDO", max_length=100)
     quantidade = models.IntegerField("QUANTIDADE")
+    motivo = models.CharField("MOTIVO",max_length=100)
 
     def __str__(self):
         return f"{self.etiqueta}"
@@ -64,7 +65,7 @@ class Rateio(models.Model):
     fatura = models.CharField("FATURA", max_length=20, blank=True, null=True)
     etiqueta = models.ForeignKey(Envio, models.DO_NOTHING, db_column='etiqueta', verbose_name="ETIQUETA")
     titular_cartao = models.CharField("TITULAR CARTÃO", max_length=100, blank=True, null=True)
-    servico = models.CharField("SERVIÇO", max_length=10, blank=True, null=True)
+    servico = models.CharField("SERVIÇO", max_length=100, blank=True, null=True)
     data_postagem = models.DateField("DATA DA POSTAGEM", blank=True, null=True)
     unidade_postagem = models.CharField("UNIDADE POSTAGEM", max_length=100, blank=True, null=True)
     valor_declarado = models.DecimalField("VALOR DECLARADO", max_digits=10, decimal_places=2, blank=True, null=True)

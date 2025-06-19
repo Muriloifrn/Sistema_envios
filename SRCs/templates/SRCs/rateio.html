@@ -1,83 +1,92 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rateio</title>
+    <link rel="stylesheet" href="{% static 'SRCs/css/rateio.css' %}">
 </head>
 <body>
 
-{% block content %}
-<div class="container mt-4">
+<div class="container">
+    <h2>Importação de Fatura</h2>
 
-    <h2>Rateio</h2>
-
-    <!-- Mensagens -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
-    <!-- Formulário de Upload -->
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Importar Fatura</button>
+        <button type="submit">Importar Fatura</button>
     </form>
 
     <hr>
 
-    <!-- Tabela de Rateios -->
-    <h3>Registros de Rateio</h3>
-    <thead>
-<tr>
-    <th>Etiqueta</th>
-    <th>Usuário</th>
-    <th>Remetente</th>
-    <th>Destinatário</th>
-    <th>Data Solicitação</th>
-    <th>Conteúdo</th>
-    <th>Quantidade</th>
-    <th>Serviço</th>
-    <th>Data Postagem</th>
-    <th>Unidade Postagem</th>
-    <th>Peso</th>
-    <th>Valor Declarado</th>
-    <th>Valor Unitário</th>
-    <th>Serviços Adicionais</th>
-    <th>Desconto</th>
-    <th>Valor Líquido</th>
-</tr>
-</thead>
-<tbody>
-{% for item in rateios %}
-<tr>
-    <td>{{ item.etiqueta }}</td>
-    <td>{{ item.etiqueta.user }}</td>
-    <td>{{ item.etiqueta.remetente }}</td>
-    <td>{{ item.etiqueta.destinatario }}</td>
-    <td>{{ item.etiqueta.data_solicitacao }}</td>
-    <td>{{ item.etiqueta.conteudo }}</td>
-    <td>{{ item.etiqueta.quantidade }}</td>
-    <td>{{ item.servico }}</td>
-    <td>{{ item.data_postagem }}</td>
-    <td>{{ item.unidade_postagem }}</td>
-    <td>{{ item.peso }}</td>
-    <td>{{ item.valor_declarado }}</td>
-    <td>{{ item.valor_unitario }}</td>
-    <td>{{ item.servico_adicionais }}</td>
-    <td>{{ item.desconto }}</td>
-    <td>{{ item.valor_liquido }}</td>
-</tr>
-{% empty %}
-<tr><td colspan="16">Nenhum registro encontrado.</td></tr>
-{% endfor %}
-</tbody>
+    <h3>Planilha de Rateio</h3>
 
-    </table>
+    <div class="tabela-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>FATURA</th>
+                    <th>SOLICITANTE</th>
+                    <th>MOTIVO</th>
+                    <th>CARTAO POSTAGEM</th>
+                    <th>TITULAR CARTAO</th>
+                    <th>SERVIÇO</th>
+                    <th>Nº AUTORIZAÇÃO</th>
+                    <th>ETIQUETA</th>
+                    <th>DATA POSTAGEM</th>
+                    <th>UNIDADE POSTAGEM</th>
+                    <th>REMETENTE</th>
+                    <th>DESTINATÁRIO</th>
+                    <th>VALOR DECLARADO</th>
+                    <th>VALOR UNITÁRIO</th>
+                    <th>QUANTIDADE</th>
+                    <th>PESO</th>
+                    <th>SERVIÇOS ADICIONAIS</th>
+                    <th>VALOR LÍQUIDO</th>
+                    <th>DESCONTO</th>
+                    <th>CENTRO DE CUSTO</th>
+                    <th>EMPRESA</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in dados %}
+            <tr>
+                <td>{{ item.fatura }}</td>
+                <td>{{ item.solicitante }}</td>
+                <td>{{ item.motivo }}</td>
+                <td>{{ item.cartao_postagem }}</td>
+                <td>{{ item.titular_cartao }}</td>
+                <td>{{ item.servico }}</td>
+                <td>{{ item.numero_autorizacao }}</td>
+                <td>{{ item.etiqueta }}</td>
+                <td>{{ item.data_postagem }}</td>
+                <td>{{ item.unidade_postagem }}</td>
+                <td>{{ item.remetente }}</td>
+                <td>{{ item.destinatario }}</td>
+                <td>{{ item.valor_declarado }}</td>
+                <td>{{ item.valor_unitario }}</td>
+                <td>{{ item.quantidade }}</td>
+                <td>{{ item.peso }}</td>
+                <td>{{ item.servico_adicionais }}</td>
+                <td>{{ item.valor_liquido }}</td>
+                <td>{{ item.desconto }}</td>
+                <td>{{ item.centro_custo }}</td>
+                <td>{{ item.empresa }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="21">Nenhum envio encontrado</td></tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
 </div>
-{% endblock %}
 
 </body>
 </html>
