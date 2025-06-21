@@ -63,7 +63,8 @@ class Envio(models.Model):
 
 class Rateio(models.Model):
     fatura = models.CharField("FATURA", max_length=20, blank=True, null=True)
-    etiqueta = models.ForeignKey(Envio, models.DO_NOTHING, db_column='etiqueta', verbose_name="ETIQUETA")
+    etiqueta = models.ForeignKey(Envio, models.DO_NOTHING, db_column='etiqueta', verbose_name="ETIQUETA", null=True, blank=True)
+    etiqueta_original = models.CharField('ETIQUETA', max_length=50)
     titular_cartao = models.CharField("TITULAR CARTÃO", max_length=100, blank=True, null=True)
     servico = models.CharField("SERVIÇO", max_length=100, blank=True, null=True)
     data_postagem = models.DateField("DATA DA POSTAGEM", blank=True, null=True)

@@ -93,39 +93,43 @@ def rateio(request):
 
                 #começa a ler a planilha apartir da linha 5
                 for row in ws.iter_rows(min_row=6, values_only=True):
+
+                    if not str(row[0]).strip().isdigit():
+                        break
+                        
                     etiqueta_valor = row[8]
                     if not etiqueta_valor:
                         continue
                     
                     try:
-                        envio = Envio.objects.get(etiqueta=etiqueta_valor)
+                        envio = Envio.objects.filter(etiqueta=etiqueta_valor).first()
                     except Envio.DoesNotExist:
                         erros.append(f"Erro: Etiqueta '{etiqueta_valor}' não encontrada. ")
                         continue
                     
                     try:
-                        rateio, created = Rateio.objects.get_or_create(
+                        Rateio.objects.create(
                             etiqueta=envio,
-                            defaults={
-                                'fatura': nome_arquivo, 
-                                'titular_cartao': row[1],
-                                'servico': row[3],
-                                'data_postagem': (
-                                    datetime.strptime(row[4], '%d/%m/%Y').date()
-                                    if isinstance(row[4], str) and row[4].strip()
-                                    else row[4] if isinstance(row[4], datetime)
-                                    else None
-                                ),
-                                'servico_adicionais': safe_decimal(row[5]),
-                                'unidade_postagem': row[6],
-                                'valor_declarado': safe_decimal(row[15]),
-                                'valor_unitario': safe_decimal(row[11]),
-                                'peso': safe_decimal(row[10]),
-                                'desconto': safe_decimal(row[12]),
-                                'valor_liquido': safe_decimal(row[14]),
-                                
-                            }
+                            etiqueta_original=etiqueta_valor,
+                            fatura=nome_arquivo,
+                            titular_cartao=row[1],
+                            servico=row[3],
+                            data_postagem=(
+                                datetime.strptime(row[4], '%d/%m/%Y').date()
+                                if isinstance(row[4], str) and row[4].strip()
+                                else row[4] if isinstance(row[4], datetime)
+                                else None
+                            ),
+                            servico_adicionais=safe_decimal(row[5]),
+                            unidade_postagem=row[6],
+                            valor_declarado=safe_decimal(row[15]),
+                            valor_unitario=safe_decimal(row[11]),
+                            peso=safe_decimal(row[10]),
+                            desconto=safe_decimal(row[12]),
+                            valor_liquido=safe_decimal(row[14]),
+
                         )
+                        
                         importados += 1
                     except Exception as e:
                         erros.append(f"Erro ao importar etiqueta '{etiqueta_valor}': {str(e)}")
@@ -143,14 +147,24 @@ def rateio(request):
         form = UploadFaturaForm()
     
     envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
+    rateios = Rateio.objects.select_related('etiqueta').all()
+
+    #para rastrear etiquetas ja processadas
+    etiquetas_processadas = set()
+
+    for rateio in rateios:
+        if not rateio.etiqueta:
+            envio = Envio.objects.filter(etiqueta=rateio.etiqueta_original).first()
+            if envio:
+                rateio.etiqueta = envio
+                rateio.save()
 
     dados_completos = []
 
+
     for envio in envios:
-        try:
-            rateio = Rateio.objects.get(etiqueta=envio)
-        except Rateio.DoesNotExist:
-            rateio = None
+        
+        rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
         
         dados_completos.append({
             'fatura': rateio.fatura if rateio else 'PENDENTE',
@@ -175,6 +189,38 @@ def rateio(request):
             'centro_custo': envio.destinatario.centro_custo,
             'empresa': envio.destinatario.empresa,
         })
+
+        etiquetas_processadas.add(envio.etiqueta)
+
+    #processa todos os rateios que não tem envio correspondente 
+    for rateio in rateios:
+        if rateio.etiqueta and rateio.etiqueta.etiqueta in etiquetas_processadas:
+            continue 
+        
+        dados_completos.append({
+            'fatura': rateio.fatura,
+            'solicitante': '',
+            'motivo': '',
+            'cartao_postagem': '',
+            'titular_cartao': rateio.titular_cartao,
+            'servico': rateio.servico,
+            'numero_autorizacao': '',
+            'etiqueta': rateio.etiqueta.etiqueta if rateio.etiqueta else rateio.etiqueta_original,
+            'data_postagem': rateio.data_postagem,
+            'unidade_postagem': rateio.unidade_postagem,
+            'remetente': '',
+            'destinatario': '',
+            'valor_declarado': rateio.valor_declarado,
+            'valor_unitario': rateio.valor_unitario,
+            'quantidade': '',
+            'peso': rateio.peso,
+            'servico_adicionais': rateio.servico_adicionais,
+            'valor_liquido': rateio.valor_liquido,
+            'desconto': rateio.desconto,
+            'centro_custo': '',
+            'empresa': '',
+        })
+
     return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos}) 
 
 @has_permission_decorator('visualizar_graficos')
