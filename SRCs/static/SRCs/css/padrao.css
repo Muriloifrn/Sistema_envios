@@ -1,0 +1,13 @@
+/* Mantém estrutura geral */
+body {
+    margin: 0;
+    padding: 0;
+    background: #eff0f2;
+}
+
+h1 {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: bold;
+    font-size: 40px;
+    background-color: #c4c5c6;
+}
