@@ -3,19 +3,26 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'SRCs/css/padrao_forms.css' %}">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
     <title>Cadastro de Usuário</title>
 </head>
 <body>
-    <h1>Cadastro de Usuários</h1>
-
-    <form action="{% url 'cadastro_user' %}" method="POST">
-        {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <input type="submit" value="Cadastrar">
-    </form>
+    {% include 'SRCs/menu_lateral.html' %}
+    <h1>Cadastro de Usuário</h1>
+    <div class="container-formulario">
+        <form action="{% url 'cadastro_user' %}" method="POST">
+            {% csrf_token %}
+            <div class="linha">
+                {% for field in form.visible_fields %}
+                    <div class="campo">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <input type="submit" value="Cadastrar">
+        </form>
+    </div>
 </body>
 </html>

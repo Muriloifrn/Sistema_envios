@@ -5,17 +5,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/padrao_forms.css' %}">
     <title>Cadastrar envio</title>
 </head>
 <body>
-    <h1>Cadastro de Envios</h1>
+    {% include 'SRCs/menu_lateral.html' %}
+    <h1 class="titulo">Cadastrar Envio</h1>
 
+    <div class="container-formulario">
     <form action="{% url 'cadastro_envio' %}" method="POST">
         {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <input type="submit" value="Cadastrar">
+
+        <div class="linha">
+            <div class="campo">
+                <label for="{{ form.etiqueta.id_for_label }}">Etiqueta</label>
+                {{ form.etiqueta }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.numero_autorizacao.id_for_label }}">Número de Autorização</label>
+                {{ form.numero_autorizacao }}
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="campo">
+                <label for="{{ form.conteudo.id_for_label }}">Conteúdo</label>
+                {{ form.conteudo }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.quantidade.id_for_label }}">Quantidade</label>
+                {{ form.quantidade }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.motivo.id_for_label }}">Motivo</label>
+                {{ form.motivo }}
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="campo">
+                <label for="{{ form.user.id_for_label }}">Usuário</label>
+                {{ form.user }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.remetente.id_for_label }}">Remetente</label>
+                {{ form.remetente }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.destinatario.id_for_label }}">Destinatário</label>
+                {{ form.destinatario }}
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="campo">
+                <label for="{{ form.data_solicitacao.id_for_label }}">Data de Solicitação</label>
+                {{ form.data_solicitacao }}
+            </div>
+        </div>
+
+        <div class="botoes">
+            <button type="button" onclick="window.location.href='{% url 'rateio' %}'">Acessar Rateio</button>
+            <button type="submit">Salvar</button>
+        </div>
     </form>
+    </div>
 </body>
 </html>

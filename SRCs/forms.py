@@ -15,10 +15,14 @@ class formularioEnvio(forms.ModelForm):
     class Meta:
         model = Envio
         fields = ('etiqueta', 'user', 'remetente', 'destinatario', 'numero_autorizacao', 'data_solicitacao', 'conteudo', 'quantidade', 'motivo' )
+        widgets = {
+            'data_solicitacao': forms.DateInput(attrs={'type': 'date'}),
+            'motivo': forms.Textarea(attrs={'rows': 2}),
+        }
+    
 
 class UploadFaturaForm(forms.Form):
     fatura = forms.FileField(
-        label='Selecione a planilha da fatura (.xlsx)',
         required=True,
         widget=forms.ClearableFileInput(attrs={'accept': '.xlsx'})
     )

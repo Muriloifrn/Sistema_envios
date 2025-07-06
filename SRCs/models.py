@@ -1,7 +1,8 @@
 from django.db import models
 
 class Unidade(models.Model):
-    cnpj = models.CharField("CNPJ", db_column='CNPJ', primary_key=True, max_length=18)  # Field name made lowercase.
+    id = models.AutoField(primary_key=True)
+    cnpj = models.CharField("CNPJ", db_column='CNPJ', max_length=18, unique=True) 
     centro_custo = models.IntegerField("CENTRO DE CUSTO")
     cep = models.CharField("CEP", max_length=10)
     bairro = models.CharField("BAIRRO", max_length=50)
@@ -18,13 +19,14 @@ class Unidade(models.Model):
         return f"{self.cnpj} - {self.shopping}"
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'unidade'
         verbose_name = "unidade"
         verbose_name_plural = "unidades"
 
 class Usuario(models.Model):
-    email = models.CharField("EMAIL", primary_key=True, max_length=100)
+    id = models.AutoField(primary_key=True)
+    email = models.CharField("EMAIL", max_length=100)
     nome = models.CharField("NOME", max_length=50)
     cartao_postagem = models.CharField("CARTÃO POSTAGEM", max_length=30)
     senha = models.CharField("SENHA (hash)", max_length=128)
@@ -35,14 +37,14 @@ class Usuario(models.Model):
         return f"{self.nome} - {self.email}"
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'usuario'
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
         
     
 class Envio(models.Model):
-    etiqueta = models.CharField("ETIQUETA", primary_key=True, max_length=50)
+    etiqueta = models.CharField("ETIQUETA", max_length=50, unique=True, primary_key=True)
     user = models.ForeignKey('Usuario', models.DO_NOTHING, verbose_name="USUÁRIO")
     remetente = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='remetente', verbose_name="REMETENTE")
     destinatario = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='destinatario', related_name='envio_destinatario_set', verbose_name="DESTINATÁRIO")
@@ -56,12 +58,13 @@ class Envio(models.Model):
         return f"{self.etiqueta}"
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'envio'
         verbose_name = "envio"
         verbose_name_plural = "envios"
 
 class Rateio(models.Model):
+    id = models.AutoField(primary_key=True)
     fatura = models.CharField("FATURA", max_length=20, blank=True, null=True)
     etiqueta = models.ForeignKey(Envio, models.DO_NOTHING, db_column='etiqueta', verbose_name="ETIQUETA", null=True, blank=True)
     etiqueta_original = models.CharField('ETIQUETA', max_length=50)
@@ -80,7 +83,7 @@ class Rateio(models.Model):
         return f"{self.fatura}"
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rateio'
         verbose_name = "rateio"
         verbose_name_plural = "rateios"

@@ -1,13 +1,15 @@
-/* Mantém estrutura geral */
 body {
+    font-family: Arial, sans-serif;
+    color: #003762;
     margin: 0;
     padding: 0;
-    background: #eff0f2;
+    background: #f4f4f4;
+    overflow-y: auto;
 }
-
 h1 {
     font-family: 'Open Sans', sans-serif;
+    color: black;
     font-weight: bold;
     font-size: 40px;
-    background-color: #c4c5c6;
+    margin-left: 500px;
 }

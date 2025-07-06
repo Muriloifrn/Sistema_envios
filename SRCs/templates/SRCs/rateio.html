@@ -18,11 +18,27 @@
         {% endfor %}
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Importar Fatura</button>
-    </form>
+    <div class="botoes-inferiores">
+    <!-- Lado esquerdo: Upload -->
+    <div class="lado-esquerdo">
+        <form method="post" enctype="multipart/form-data" class="form-upload">
+    {% csrf_token %}
+
+    <div class="linha-escolha">
+        <label for="arquivo" class="btn-escolher">Escolher Fatura</label>
+        <input type="file" id="arquivo" name="fatura" style="display: none;" onchange="atualizarTextoArquivo()">
+        <span id="nome-arquivo" class="nome-arquivo">Nenhum arquivo</span>
+    </div>
+
+    <button type="submit" class="btn-importar">Importar Fatura</button>
+</form>
+    </div>
+
+    <!-- Lado direito: Exportação -->
+    <div class="lado-direito">
+        <a href="{% url 'exportar_rateio' %}" class="btn-exportar"> Exportar Rateio</a>
+    </div>
+</div>
 
     <hr>
 
@@ -31,63 +47,101 @@
     <div class="tabela-scroll">
         <table>
             <thead>
-                <tr>
-                    <th>FATURA</th>
-                    <th>SOLICITANTE</th>
-                    <th>MOTIVO</th>
-                    <th>CARTAO POSTAGEM</th>
-                    <th>TITULAR CARTAO</th>
-                    <th>SERVIÇO</th>
-                    <th>Nº AUTORIZAÇÃO</th>
-                    <th>ETIQUETA</th>
-                    <th>DATA POSTAGEM</th>
-                    <th>UNIDADE POSTAGEM</th>
-                    <th>REMETENTE</th>
-                    <th>DESTINATÁRIO</th>
-                    <th>VALOR DECLARADO</th>
-                    <th>VALOR UNITÁRIO</th>
-                    <th>QUANTIDADE</th>
-                    <th>PESO</th>
-                    <th>SERVIÇOS ADICIONAIS</th>
-                    <th>VALOR LÍQUIDO</th>
-                    <th>DESCONTO</th>
-                    <th>CENTRO DE CUSTO</th>
-                    <th>EMPRESA</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for item in dados %}
-            <tr>
-                <td>{{ item.fatura }}</td>
-                <td>{{ item.solicitante }}</td>
-                <td>{{ item.motivo }}</td>
-                <td>{{ item.cartao_postagem }}</td>
-                <td>{{ item.titular_cartao }}</td>
-                <td>{{ item.servico }}</td>
-                <td>{{ item.numero_autorizacao }}</td>
-                <td>{{ item.etiqueta }}</td>
-                <td>{{ item.data_postagem }}</td>
-                <td>{{ item.unidade_postagem }}</td>
-                <td>{{ item.remetente }}</td>
-                <td>{{ item.destinatario }}</td>
-                <td>{{ item.valor_declarado }}</td>
-                <td>{{ item.valor_unitario }}</td>
-                <td>{{ item.quantidade }}</td>
-                <td>{{ item.peso }}</td>
-                <td>{{ item.servico_adicionais }}</td>
-                <td>{{ item.valor_liquido }}</td>
-                <td>{{ item.desconto }}</td>
-                <td>{{ item.centro_custo }}</td>
-                <td>{{ item.empresa }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="21">Nenhum envio encontrado</td></tr>
-            {% endfor %}
+    <tr>
+        <th>FATURA</th>
+        <th>SOLICITANTE</th>
+        <th>CONTEÚDO</th>
+        <th>SERVIÇO</th>
+        <th>DATA POSTAGEM</th>
+        <th>REMETENTE</th>
+        <th>DESTINATÁRIO</th>
+        <th>AÇÕES</th>
+    </tr>
+</thead>
+<tbody>
+    {% for item in dados %}
+    <tr>
+        <td>{{ item.fatura }}</td>
+        <td>{{ item.solicitante }}</td>
+        <td>{{ item.conteudo }}</td>
+        <td>{{ item.servico }}</td>
+        <td>{{ item.data_postagem }}</td>
+        <td>{{ item.remetente }}</td>
+        <td>{{ item.destinatario }}</td>
+        <td>
+    <button type="button" class="btn-detalhar"
+        onclick="abrirModal({{ forloop.counter0 }})">Detalhar</button>
+    
+    <div class="modal" id="modal-{{ forloop.counter0 }}">
+        <div class="modal-content">
+            <span class="fechar" onclick="fecharModal({{ forloop.counter0 }})">&times;</span>
 
-            </tbody>
+            <h3>Detalhes do Rateio</h3>
+            <p><strong>Fatura:</strong> {{ item.fatura }}</p>
+            <p><strong>Solicitante:</strong> {{ item.solicitante }}</p>
+            <p><strong>Conteúdo:</strong> {{ item.conteudo }}</p>
+            <p><strong>Motivo:</strong> {{ item.motivo }}</p>
+            <p><strong>Serviço:</strong> {{ item.servico }}</p>
+            <p><strong>Data Postagem:</strong> {{ item.data_postagem }}</p>
+            <p><strong>Remetente:</strong> {{ item.remetente }}</p>
+            <p><strong>Destinatário:</strong> {{ item.destinatario }}</p>
+            <p><strong>Cartão Postagem:</strong> {{ item.cartao_postagem }}</p>
+            <p><strong>Titular do Cartão:</strong> {{ item.titular_cartao }}</p>
+            <p><strong>Nº Autorização:</strong> {{ item.numero_autorizacao }}</p>
+            <p><strong>Etiqueta:</strong> {{ item.etiqueta }}</p>
+            <p><strong>Unidade Postagem:</strong> {{ item.unidade_postagem }}</p>
+            <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
+            <p><strong>Peso:</strong> {{ item.peso }}</p>
+            <p><strong>Serviços Adicionais:</strong> {{ item.servico_adicionais }}</p>
+            <p><strong>Valor Declarado:</strong> {{ item.valor_declarado }}</p>
+            <p><strong>Valor Unitário:</strong> {{ item.valor_unitario }}</p>
+            <p><strong>Valor Líquido:</strong> {{ item.valor_liquido }}</p>
+            <p><strong>Desconto:</strong> {{ item.desconto }}</p>
+            <p><strong>Centro de Custo:</strong> {{ item.centro_custo }}</p>
+            <p><strong>Empresa:</strong> {{ item.empresa }}</p>
+        </div>
+    </div>
+</td>
+
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">Nenhum envio encontrado</td></tr>
+    {% endfor %}
+</tbody>
+
         </table>
     </div>
 </div>
 
+<!-- Botões abaixo da tabela -->
+
+
+<script>
+    function abrirModal(id) {
+        document.getElementById(`modal-${id}`).style.display = "block";
+    }
+
+    function fecharModal(id) {
+        document.getElementById(`modal-${id}`).style.display = "none";
+    }
+
+    // Fechar ao clicar fora da modal
+    window.onclick = function(event) {
+        const modals = document.querySelectorAll(".modal");
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
+    function atualizarTextoArquivo() {
+        const input = document.getElementById("arquivo");
+        const span = document.getElementById("nome-arquivo");
+        span.textContent = input.files.length ? input.files[0].name : "Nenhum arquivo";
+    }
+</script>
+
 </body>
+
 </html>
