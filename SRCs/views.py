@@ -36,7 +36,8 @@ def index(request):
 
 # View da home após login
 def home(request):
-    return render(request, 'SRCs/home.html')
+    dados = Envio.objects.select_related('user', 'remetente', 'destinatario').order_by('-data_solicitacao')[:5]
+    return render(request, 'SRCs/home.html', {'dados': dados})
 
 
 # View que lista todos os usuários (acesso apenas para quem tem permissão)
@@ -354,3 +355,14 @@ def exportar_rateio(request):
 @has_permission_decorator('visualizar_graficos')
 def dashboard(request):
     return render(request, 'STCs/graficos.html')
+
+def editar_unidade(request):
+    if request.method == 'POST':
+        selecionados = request.POST.getlist('selecionados')
+        return redirect('cadastro_unidade', ids=selecionados)
+    
+def excluir_unidade(request):
+    if request.method == 'POST':
+        selecionados = request.POST.getlist('selecionados')
+        Unidade.objects.filter(id__in=selecionados).delete()
+        return redirect('unidade')

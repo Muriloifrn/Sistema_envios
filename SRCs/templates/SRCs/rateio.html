@@ -6,8 +6,11 @@
     <title>Rateio</title>
     <link rel="stylesheet" href="{% static 'SRCs/css/rateio.css' %}">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
 </head>
 <body>
+
+    {% include 'SRCs/menu_lateral_oculto.html' %}
 
 <div class="container">
     <h1>Rateio</h1>
@@ -140,6 +143,17 @@
         const span = document.getElementById("nome-arquivo");
         span.textContent = input.files.length ? input.files[0].name : "Nenhum arquivo";
     }
+
+    const menu = document.getElementById('menuLateral');
+
+    function mostrarMenu() {
+        menu.style.left = '0';
+    }
+
+    function ocultarMenu() {
+        menu.style.left = '-220px';
+    }
+
 </script>
 
 </body>

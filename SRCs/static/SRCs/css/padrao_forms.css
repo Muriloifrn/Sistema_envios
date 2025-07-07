@@ -3,7 +3,7 @@
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 110px);
-    margin-left: 260px;
+    margin-left: 300px;
     box-sizing: border-box;
     padding: 20px;
 }
@@ -61,48 +61,3 @@ input[type="submit"] {
 input[type="submit"]:hover {
     opacity: 0.9;
 }
-
-/* MENU LATERAL */
-.menu-lateral {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 300px;
-    height: 100vh;
-    background-color: #003762;
-    padding-top: 70px;
-    color: white;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.menu-lateral ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.menu-lateral li {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.menu-lateral a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    display: block;
-    padding: 10px;
-    transition: background 0.3s;
-}
-
-.menu-lateral a:hover {
-    background-color: #002748;
-    border-radius: 4px;
-}
-
-/* Ajuste no conteúdo para não ficar por baixo do menu */
-.com-conteudo {
-    margin-left: 240px;
-    padding: 20px;
-}
-

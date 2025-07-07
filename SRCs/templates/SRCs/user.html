@@ -5,19 +5,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
-    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/lista.css' %}">
+    <title>Usuários</title>
 </head>
 <body>
-    <h2>Usuários Cadastrados</h2>
-<ul>
-  {% for usuario in usuarios %}
-    <li>{{ usuario.nome }}</li>
-  {% empty %}
-    <li>Nenhum usuário cadastrado.</li>
-  {% endfor %}
-</ul>
+  {% include 'SRCs/menu_lateral.html' %}
 
-<a href="{% url 'cadastro_user' %}">Cadastrar novo usuário</a>
+  <div class="conteudo-centro">
+    <h2>Usuários Cadastrados</h2>
+
+    <form method="post">
+      {% csrf_token %}
+      <ul class="lista-itens">
+        {% for item in usuarios %}
+        <li>
+          <label>
+            <input type="checkbox" name="selecionados" value="{{ item.id}}">
+            {{ item.nome }} - {{ item.email}}
+
+          </label>
+        </li>
+        {% empty %}
+        <li>Nenhum usuário cadastrado</li>
+        {% endfor %}
+      </ul>
+
+      <div class="botoes-acoes">
+        <button type="submit" formaction=""><em>Editar</em></button>
+        <button type="submit" formaction=""><em>Excluir</em></button>
+      </div>
+
+    </form>
+    </div>
 
 </body>
 </html>

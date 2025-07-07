@@ -6,10 +6,11 @@ body {
     background: #f4f4f4;
     overflow-y: auto;
 }
+
 h1 {
     font-family: 'Open Sans', sans-serif;
     color: black;
     font-weight: bold;
-    font-size: 40px;
-    margin-left: 500px;
+    font-size: 32px;
+    margin: 30px 0 10px 320px; /* alinhado à esquerda acima da tabela */
 }

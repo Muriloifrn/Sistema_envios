@@ -16,7 +16,7 @@ class Unidade(models.Model):
     empresa = models.CharField("EMPRESA", max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.cnpj} - {self.shopping}"
+        return f"{self.shopping}"
 
     class Meta:
         managed = True

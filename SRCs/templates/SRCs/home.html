@@ -3,11 +3,86 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu</title>
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
+    <title>Home</title>
 </head>
 <body>
-    <h1>Tudo certo</h1>
+    {% include 'SRCs/menu_lateral.html' %}
+
+    <div class="bloco-tabela-fixada">
+    <div class="cabecalho-tabela">
+        <h1>Últimos Envios Registrados</h1>
+        </div>
+
+        <div class="container-tabela">
+
+        <table class="tabela-envios">
+            
+            <thead>
+                <tr>
+                    <th>Código de Rastreio</th>
+                    <th>Solicitante</th>
+                    <th>Conteúdo</th>
+                    <th>Remetente</th>
+                    <th>Destinatário</th>
+                    <th>Data da Postagem</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+
+
+                {% for item in dados %}
+                <tr>
+                    <td>{{ item.etiqueta }}</td>
+                    <td>{{ item.user.nome }}</td>
+                    <td>{{ item.conteudo }}</td>
+                    <td>{{ item.remetente }}</td>
+                    <td>{{ item.destinatario }}</td>
+                    <td>{{ item.data_solicitacao|date:"d/m/Y" }}</td>
+                    <td>
+                        <button type="button" class="btn-detalhar" onclick="abrirModal({{ forloop.counter0 }})">Detalhar</button>
+
+                        <div class="modal" id="modal-{{ forloop.counter0 }}">
+                            <div class="modal-content">
+                                <span class="fechar" onclick="fecharModal({{ forloop.counter0 }})">&times;</span>
+
+                                <h3>Detalhes do Envio</h3>
+                                <p><strong>Etiqueta:</strong> {{ item.etiqueta }}</p>
+                                <p><strong>Conteúdo:</strong> {{ item.conteudo }}</p>
+                                <p><strong>Motivo:</strong> {{ item.motivo }}</p>
+                                <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
+                                <p><strong>Remetente:</strong> {{ item.remetente }}</p>
+                                <p><strong>Destinatário:</strong> {{ item.destinatario }}</p>
+                                <p><strong>Usuário:</strong> {{ item.user.nome }}</p>
+                                <p><strong>Centro de Custo:</strong> {{ item.user.centro_custo }}</p>
+                                <p><strong>Data Solicitação:</strong> {{ item.data_solicitacao|date:"d/m/Y" }}</p>
+                                <p><strong>Autorização:</strong> {{ item.numero_autorizacao }}</p>
+                                
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">Nenhum envio encontrado</td></tr>
+                {% endfor %}
+                </tbody>
+
+           
+        </table>
+    </div>
+    </div>
+
+    <script>
+        function abrirModal(id) {
+            document.getElementById('modal-' + id).style.display = 'block';
+        }
+
+        function fecharModal(id) {
+            document.getElementById('modal-' + id).style.display = 'none';
+        }
+        </script>
 </body>
 </html>
