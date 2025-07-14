@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 
 class Unidade(models.Model):
     id = models.AutoField(primary_key=True)
@@ -25,22 +27,47 @@ class Unidade(models.Model):
         verbose_name_plural = "unidades"
 
 class Usuario(models.Model):
-    id = models.AutoField(primary_key=True)
-    email = models.CharField("EMAIL", max_length=100)
-    nome = models.CharField("NOME", max_length=50)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    PERFIS = [
+        ('Admin', 'Admin'),
+        ('Analista', 'Analista'),
+        ('Basic', 'Basic'),
+        ('Supervisor', 'Supervisor'),
+    ]
     cartao_postagem = models.CharField("CARTÃO POSTAGEM", max_length=30)
-    senha = models.CharField("SENHA (hash)", max_length=128)
-    centro_custo = models.IntegerField("CENTRO DE CUSTO")
-    perfil = models.CharField("TIPO PERFIL", max_length=10)
+    perfil = models.CharField("TIPO PERFIL", max_length=10, choices=PERFIS, default='basic')
 
     def __str__(self):
-        return f"{self.nome} - {self.email}"
+        return self.user.username
+
+    class Meta:
+        permissions = [
+            ('cadastrar_usuario', 'Cadastrar Usuário'),
+            ('editar_usuario', 'Editar Usuário'),
+            ('cadastrar_unidade', 'Cadastrar Unidade'),
+            ('editar_unidade', 'Editar Unidade'),
+            ('cadastrar_envio', 'Cadastrar Envio'),
+            ('consultar_rateio', 'Consultar Rateio'),
+            ('consultar_dashboard', 'Consultar Dashboard'),
+            ('acompanhar_envio', 'Acompanhar Envio'),
+        ]
+    def atribuir_grupo(self):
+        grupo_nome = self.perfil.lower()
+        grupo = Group.objects.get(name=grupo_nome)
+        self.user.groups.add(grupo)
+
+    def __str__(self):
+        return self.user.username
 
     class Meta:
         managed = True
         db_table = 'usuario'
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
+    
+
         
     
 class Envio(models.Model):
@@ -50,7 +77,7 @@ class Envio(models.Model):
     destinatario = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='destinatario', related_name='envio_destinatario_set', verbose_name="DESTINATÁRIO")
     numero_autorizacao = models.CharField("NÚMERO DE AUTORIZAÇÃO", max_length=20)
     data_solicitacao = models.DateField("DATA DA SOLICITAÇÃO")
-    conteudo = models.CharField("CONTEÚDO", max_length=100)
+    conteudo = models.CharField(max_length=200, default='Sem conteúdo')
     quantidade = models.IntegerField("QUANTIDADE")
     motivo = models.CharField("MOTIVO",max_length=100)
 

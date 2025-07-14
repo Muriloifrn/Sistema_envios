@@ -19,11 +19,15 @@
                     <div class="campo">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
+                        {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>
             <input type="submit" value="Cadastrar">
         </form>
+
     </div>
 </body>
 </html>

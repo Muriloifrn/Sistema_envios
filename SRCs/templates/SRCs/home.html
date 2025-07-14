@@ -5,14 +5,48 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
     <link rel="stylesheet" href="{% static 'SRCs/css/home.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
     <title>Home</title>
 </head>
 <body>
-    {% include 'SRCs/menu_lateral.html' %}
 
+<div class="container-botoes">
+
+    <a href="{% url 'cadastro_user' %}">
+        <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Botão cad user" class="botao-img">
+    </a>
+
+    <a href="{% url 'user' %}">
+        <img src="{% static 'SRCs/imagens/user.png' %}" alt="Botão edit user" class="botao-img">
+    </a>
+
+    <a href="{% url 'cadastro_unidade' %}">
+        <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Botão cad unidade" class="botao-img">
+    </a>
+
+    <a href="{% url 'unidade' %}">
+        <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Botão edit unidade" class="botao-img">
+    </a>
+
+    <a href="{% url 'cadastro_envio' %}">
+        <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Botão cad envio" class="botao-img">
+    </a>
+
+    <a href="{% url 'rateio' %}">
+        <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Botão rateio" class="botao-img">
+    </a>
+
+    <a href="{% url 'dashboard' %}">
+        <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Botão graficos" class="botao-img">
+    </a>
+
+    <a href="{% url 'acompanhamento' %}">
+        <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Botão status" class="botao-img">
+    </a>
+
+</div>
     <div class="bloco-tabela-fixada">
     <div class="cabecalho-tabela">
+
         <h1>Últimos Envios Registrados</h1>
         </div>
 

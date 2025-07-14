@@ -4,7 +4,8 @@ table {
     border-collapse: collapse;
     width: 100%;
     min-width: 700px;
-    margin: 40px auto 0 0;
+    margin: 0 auto;
+    max-width: 95%;
     table-layout: fixed;
     font-size: 14px;
 }
@@ -107,19 +108,15 @@ td:last-child {
 .bloco-tabela-fixada {
     position: fixed;
     bottom: 30px;
-    left: 0;
-    margin-left: 320px; /* Largura do menu lateral */
-    width: calc(100% - 320px);
-    max-height: 70vh;
-    overflow-y: auto;
+    
 }
 
 /* ---------- Cabeçalho do bloco da tabela ---------- */
 
 .cabecalho-tabela h1 {
-    font-size: 16px;
-    margin: 0;
-    padding: 0px 6px;
+    font-size: 18px;
+    margin: 5px;
+    padding: 0px 50px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
 }
@@ -161,3 +158,28 @@ td:last-child {
         width: 90%;
     }
 }
+
+.container-botoes {
+    margin-top: 150px;
+    display: flex;
+    justify-content: center;     /* Centraliza horizontalmente */
+    align-items: center;
+    gap: 30px;                    /* Espaço entre os botões */
+    flex-wrap: nowrap;           /* ❗Não permite quebra de linha */
+    overflow-x: auto;            /* ❗Adiciona rolagem horizontal se necessário */
+    padding: 20px;
+}
+
+.botao-img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.botao-img:hover {
+    transform: scale(1.1);
+}
+}
+

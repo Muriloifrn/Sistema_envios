@@ -4,9 +4,6 @@ import openpyxl
 # Importa funções do Django para renderizar templates e redirecionar páginas
 from django.shortcuts import render, redirect
 
-# Importa decorador para controle de permissões de acesso às views
-from rolepermissions.decorators import has_permission_decorator
-
 # Importa os formulários definidos no projeto
 from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFaturaForm
 
@@ -17,7 +14,7 @@ from .models import Unidade, Usuario, Envio, Rateio
 from django.contrib import messages
 
 # Para trabalhar com datas
-from datetime import datetime
+import datetime
 
 # Para trabalhar com valores decimais de forma precisa
 from decimal import Decimal, InvalidOperation
@@ -26,43 +23,63 @@ from decimal import Decimal, InvalidOperation
 from openpyxl import Workbook
 
 #para enviar o arquivo excel como download
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
+
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
 
 
 # View da página inicial
-def index(request):
-    return render(request, 'SRCs/index.html')
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        senha = request.POST.get('password')
 
+        user = authenticate(request, username=username, password=senha)
+
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # ou a página inicial do sistema
+        else:
+            messages.error(request, "Usuário ou senha inválidos.")
+
+    return render(request, 'SRCs/login.html')
 
 # View da home após login
+@login_required
 def home(request):
     dados = Envio.objects.select_related('user', 'remetente', 'destinatario').order_by('-data_solicitacao')[:5]
     return render(request, 'SRCs/home.html', {'dados': dados})
 
 
 # View que lista todos os usuários (acesso apenas para quem tem permissão)
-@has_permission_decorator('cadastrar_user')
+@login_required
+@permission_required('SRCs.editar_usuario', raise_exception=True)
 def user(request):
     usuarios = Usuario.objects.all()
     return render(request, 'SRCs/user.html', {'usuarios': usuarios})
 
 
 # View para cadastrar novos usuários
-@has_permission_decorator('cadastrar_user')
+@login_required
+@permission_required('SRCs.cadastrar_usuario', raise_exception=True)
 def cadastro_user(request):
     if request.method == 'POST':
         form = formularioUser(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('user')
+            messages.success(request, 'Usuário cadastrado com sucesso!')
+            return redirect('login')  # ou outro lugar após o cadastro
     else:
         form = formularioUser()
-
+    
     return render(request, 'SRCs/form_user.html', {'form': form})
 
 
 # View para cadastrar unidades
-@has_permission_decorator('cadastrar_unid')
+@login_required
+@permission_required('SRCs.cadastrar_unidade', raise_exception=True)
 def cadastro_unidade(request):
     if request.method == 'POST':
         form = formularioUnidade(request.POST)
@@ -76,14 +93,16 @@ def cadastro_unidade(request):
 
 
 # View que lista todas as unidades
-@has_permission_decorator('cadastrar_unid')
+@login_required
+@permission_required('SRCs.editar_unidade', raise_exception=True)
 def unidade(request):
     unidades = Unidade.objects.all()
     return render(request, 'SRCs/unidade.html', {'unidades': unidades})
 
 
 # View para cadastrar um envio (ex: envio pelos Correios)
-@has_permission_decorator('cadastrar_envio')
+@login_required
+@permission_required('SRCs.cadastrar_envio', raise_exception=True)
 def cadastro_envio(request):
     if request.method == 'POST':
         form = formularioEnvio(request.POST)
@@ -97,6 +116,9 @@ def cadastro_envio(request):
 
 
 # Função auxiliar para converter valores em decimal de forma segura
+
+
+
 def safe_decimal(valor):
     try:
         if valor is None:
@@ -117,6 +139,8 @@ def safe_decimal(valor):
 
 
 # View que faz o processamento da fatura (rateio)
+@login_required
+@permission_required('SRCs.consultar_rateio', raise_exception=True)
 def rateio(request):
     if request.method == 'POST':
         form = UploadFaturaForm(request.POST, request.FILES)
@@ -133,34 +157,39 @@ def rateio(request):
 
                 # Começa a ler da linha 6 em diante
                 for row in ws.iter_rows(min_row=6, values_only=True):
+                    print(f"Lendo linha: {row}")
 
-                    # Verifica se a primeira célula da linha contém número (evita ler linhas inválidas)
-                    if not str(row[0]).strip().isdigit():
+                    if row[0] is None or not isinstance(row[0], (int, float)):
+                        print(f"Encerrando leitura por linha inválida: {row[0]}")
                         break
-                        
-                    etiqueta_valor = row[8]
-                    if not etiqueta_valor:
-                        continue
-                    
-                    # Tenta encontrar o envio pela etiqueta
+
+                    etiqueta_valor = str(row[8]).strip().upper()
+                    print(f"Etiqueta buscada (ajustada): '{etiqueta_valor}'")
+
+                    envio = Envio.objects.filter(etiqueta__iexact=etiqueta_valor).first()
+                    print(f"Envio encontrado? {'Sim' if envio else 'Não'}")
+
+                    if not envio:
+                        print(f"[INFO] Etiqueta '{etiqueta_valor}' não encontrada. Criando rateio sem envio.")
+
+
+
+                    # Aqui vai o try de criação do rateio
                     try:
-                        envio = Envio.objects.filter(etiqueta=etiqueta_valor).first()
-                    except Envio.DoesNotExist:
-                        erros.append(f"Erro: Etiqueta '{etiqueta_valor}' não encontrada.")
-                        continue
-                    
-                    # Cria um novo rateio com os dados da linha
-                    try:
+
+                        Rateio.objects.filter(etiqueta_original=etiqueta_valor).delete()
+
+
                         Rateio.objects.create(
                             etiqueta=envio,
                             etiqueta_original=etiqueta_valor,
                             fatura=nome_arquivo,
                             titular_cartao=row[1],
                             servico=row[3],
-                            data_postagem=(
-                                datetime.strptime(row[4], '%d/%m/%Y').date()
+                            data_postagem = (
+                                datetime.datetime.strptime(row[4], '%d/%m/%Y').date()
                                 if isinstance(row[4], str) and row[4].strip()
-                                else row[4] if isinstance(row[4], datetime)
+                                else row[4] if isinstance(row[4], datetime.datetime)
                                 else None
                             ),
                             servico_adicionais=safe_decimal(row[5]),
@@ -171,6 +200,7 @@ def rateio(request):
                             desconto=safe_decimal(row[12]),
                             valor_liquido=safe_decimal(row[14]),
                         )
+                        print(f"Rateio criado com sucesso para a etiqueta {etiqueta_valor}")
                         importados += 1
                     except Exception as e:
                         erros.append(f"Erro ao importar etiqueta '{etiqueta_valor}': {str(e)}")
@@ -212,7 +242,7 @@ def rateio(request):
         
         dados_completos.append({
             'fatura': rateio.fatura if rateio else 'PENDENTE',
-            'solicitante': envio.user.nome,
+            'solicitante': envio.user.user.get_full_name() or envio.user.user.username,
             'motivo': envio.motivo,
             'conteudo': envio.conteudo,
             'cartao_postagem': envio.user.cartao_postagem,
@@ -269,6 +299,7 @@ def rateio(request):
     # Renderiza a página com os dados e o formulário de upload
     return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos}) 
 
+
 def exportar_rateio(request):
     #Mostra os dados completos 
     envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
@@ -281,7 +312,7 @@ def exportar_rateio(request):
        rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
        dados_completos.append({
         'fatura': rateio.fatura if rateio else 'PENDENTE',
-        'solicitante': envio.user.nome,
+        'solicitante': envio.user.user.get_full_name() or envio.user.user.username,
         'motivo': envio.conteudo,
         'cartao_postagem': envio.user.cartao_postagem,
         'titular_cartao': rateio.titular_cartao if rateio else '',
@@ -352,9 +383,15 @@ def exportar_rateio(request):
 
 
 # View do painel de gráficos
-@has_permission_decorator('visualizar_graficos')
+@login_required
+@permission_required('SRCs.consultar_dashboard', raise_exception=True)
 def dashboard(request):
-    return render(request, 'STCs/graficos.html')
+    return render(request, 'SRCs/graficos.html')
+
+@login_required
+@permission_required('SRCs.acompanhar_envio', raise_exception=True)
+def acompanhamento(request):
+    return render(request, 'SRCs/acompanhamento.html')
 
 def editar_unidade(request):
     if request.method == 'POST':
