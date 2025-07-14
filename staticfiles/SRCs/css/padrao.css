@@ -1,0 +1,16 @@
+body {
+    font-family: Arial, sans-serif;
+    color: #003762;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    overflow-y: auto;
+}
+
+h1 {
+    font-family: 'Open Sans', sans-serif;
+    color: black;
+    font-weight: bold;
+    font-size: 32px;
+    margin: 30px 0 10px 320px; /* alinhado à esquerda acima da tabela */
+}
