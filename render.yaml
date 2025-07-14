@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: src-django
+    env: python
+    buildCommand: |
+      apt-get update && apt-get install -y libmysqlclient-dev
+      pip install -r requirements.txt
+    startCommand: gunicorn src.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: src.settings
