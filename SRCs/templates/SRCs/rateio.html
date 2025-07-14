@@ -75,11 +75,11 @@
         <td>{{ item.destinatario }}</td>
         <td>
     <button type="button" class="btn-detalhar"
-        onclick="abrirModal({{ forloop.counter0 }})">Detalhar</button>
+        onclick="abrirModal('{{ forloop.counter0 }}')">Detalhar</button>
     
     <div class="modal" id="modal-{{ forloop.counter0 }}">
         <div class="modal-content">
-            <span class="fechar" onclick="fecharModal({{ forloop.counter0 }})">&times;</span>
+            <span class="fechar" onclick="fecharModal('{{ forloop.counter0 }}')">&times;</span>
 
             <h3>Detalhes do Rateio</h3>
             <p><strong>Fatura:</strong> {{ item.fatura }}</p>
