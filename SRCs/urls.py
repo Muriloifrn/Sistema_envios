@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views
+from django.shortcuts import redirect
 from django.contrib.auth.views import LogoutView
+from . import views
 
 urlpatterns = [
+    path('', lambda request: redirect('login'), name='root_redirect'),
     path('login', views.login_view, name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('home/unidades/novo', views.cadastro_unidade, name='cadastro_unidade'),
@@ -16,4 +18,3 @@ urlpatterns = [
     path('home/exportar', views.exportar_rateio, name='exportar_rateio'),
     path('home/acompanhamento_envio', views.acompanhamento, name='acompanhamento'),
 ]
- 
