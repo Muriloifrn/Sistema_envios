@@ -21,23 +21,72 @@
         {% for item in usuarios %}
         <li>
           <label>
-            <input type="checkbox" name="selecionados" value="{{ item.id}}">
-            {{ item.nome }} - {{ item.email}}
-
+    
+            {{ item.user.username }} - {{ item.user.email }}
           </label>
+          <button type="button" onclick="abrirModal('{{ item.id }}', '{{ item.user.username }}', '{{ item.user.email }}', '{{ item.cartao_postagem }}', '{{ item.perfil }}')">Editar</button>
+          <a href="{% url 'excluir_usuario' item.id %}" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">Excluir</a>
+
         </li>
+
         {% empty %}
         <li>Nenhum usuário cadastrado</li>
         {% endfor %}
       </ul>
 
-      <div class="botoes-acoes">
-        <button type="submit" formaction=""><em>Editar</em></button>
-        <button type="submit" formaction=""><em>Excluir</em></button>
-      </div>
-
     </form>
     </div>
+
+    <div id="modal-edicao" class="modal" style="display:none;">
+      <div class="modal-conteudo">
+        <h2>Editar Usuário</h2>
+        <form method="post" action="{% url 'editar_usuario' 0 %}" id="form-edicao">
+          {% csrf_token %}
+          <input type="hidden" name="usuario_id" id="usuario_id">
+          
+          <label>Nome de Usuário:</label>
+          <input type="text" name="username" id="username">
+
+          <label>Email:</label>
+          <input type="email" name="email" id="email">
+
+          <label>Cartão Postagem:</label>
+          <input type="text" name="cartao_postagem" id="cartao_postagem">
+
+          <label>Perfil:</label>
+          <select name="perfil" id="perfil">
+            <option value="Admin">Admin</option>
+            <option value="Analista">Analista</option>
+            <option value="Basic">Basic</option>
+            <option value="Supervisor">Supervisor</option>
+          </select>
+
+          <br><br>
+          <button type="submit">Salvar</button>
+          <button type="button" onclick="fecharModal()">Cancelar</button>
+        </form>
+      </div>
+    </div>
+
+<script>
+  function abrirModal(id, username, email, cartao, perfil) {
+    document.getElementById('usuario_id').value = id;
+    document.getElementById('username').value = username;
+    document.getElementById('email').value = email;
+    document.getElementById('cartao_postagem').value = cartao;
+    document.getElementById('perfil').value = perfil;
+
+    const form = document.getElementById('form-edicao');
+    form.action = `/usuarios/editar/${id}/`;  // Atualiza a URL do form
+
+    document.getElementById('modal-edicao').style.display = 'block';
+  }
+
+  function fecharModal() {
+    document.getElementById('modal-edicao').style.display = 'none';
+  }
+</script>
+
 
 </body>
 </html>

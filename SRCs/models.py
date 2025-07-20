@@ -4,7 +4,8 @@ from django.contrib.auth.models import Group
 
 class Unidade(models.Model):
     id = models.AutoField(primary_key=True)
-    cnpj = models.CharField("CNPJ", db_column='CNPJ', max_length=18, unique=True) 
+    cnpj = models.CharField("CNPJ", db_column='CNPJ', max_length=18, unique=True, null=True, blank=True) 
+    excluida = models.BooleanField(default=False)
     centro_custo = models.IntegerField("CENTRO DE CUSTO")
     cep = models.CharField("CEP", max_length=10)
     bairro = models.CharField("BAIRRO", max_length=50)
@@ -29,6 +30,8 @@ class Unidade(models.Model):
 class Usuario(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ativo = models.BooleanField(default=True)
+
 
     PERFIS = [
         ('Admin', 'Admin'),
@@ -66,9 +69,6 @@ class Usuario(models.Model):
         db_table = 'usuario'
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
-    
-
-        
     
 class Envio(models.Model):
     etiqueta = models.CharField("ETIQUETA", max_length=50, unique=True, primary_key=True)

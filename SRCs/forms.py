@@ -10,10 +10,13 @@ class formularioUnidade(forms.ModelForm):
 
     def clean_cnpj(self):
         cnpj = self.cleaned_data['cnpj']
-        if Unidade.objects.filter(cnpj=cnpj).exists():
-            raise ValidationError("Já existe uma unidade com este CNPJ.")
+        qs = Unidade.objects.filter(cnpj=cnpj)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError("Já existe uma unidade com este CNPJ.")
         return cnpj
-    
 
 class formularioUser(forms.ModelForm):
     username = forms.CharField(label="Nome de Usuário")
@@ -44,7 +47,50 @@ class formularioUser(forms.ModelForm):
             usuario.save()
 
         return usuario
-    
+
+class FormularioEditarUsuario(forms.ModelForm):
+    username = forms.CharField(label="Nome de Usuário")
+    email = forms.EmailField(label="Email")
+
+    class Meta:
+        model = Usuario
+        fields = ['cartao_postagem', 'perfil']
+
+    def __init__(self, *args, **kwargs):
+        self.usuario_django = kwargs.pop('usuario_django', None)
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.user:
+            self.fields['username'].initial = self.instance.user.username
+            self.fields['email'].initial = self.instance.user.email
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        qs = User.objects.filter(email=email)
+
+        if self.usuario_django:
+            qs = qs.exclude(pk=self.usuario_django.pk)
+
+        if qs.exists():
+            raise ValidationError("Já existe um usuário com este email.")
+        return email
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+
+        if self.usuario_django:
+            self.usuario_django.username = self.cleaned_data['username']
+            self.usuario_django.email = self.cleaned_data['email']
+            if commit:
+                self.usuario_django.save()
+
+        if commit:
+            usuario.save()
+
+        return usuario
+
+
+
 class formularioEnvio(forms.ModelForm):
     class Meta:
         model = Envio

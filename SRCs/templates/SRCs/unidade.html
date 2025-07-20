@@ -15,27 +15,27 @@
     <div class="conteudo-centro">
       <h2>Unidades Cadastradas</h2>
 
-      <form method="post">
-        {% csrf_token %}
-        <ul class="lista-itens">
-          {% for item in unidades %}
-          <li>
-            <label>
-              <input type="checkbox" name="selecionados" value="{{ item.id }}">
+    <form method="post" action="{% url 'excluir_unidades_multiplo' %}">
+      {% csrf_token %}
+      <ul class="lista-itens">
+        {% for item in unidades %}
+        <li>
+          <label>
+            <input type="checkbox" name="selecionados" value="{{ item.id }}">
             {{ item.shopping }} - {{ item.cnpj }} - {{ item.empresa }}
-            
-            </label>
-          </li>
-          {% empty %}
-          <li>Nenhum item cadastrado</li>
-          {% endfor %}
-        </ul>
+          </label>
+        </li>
+        {% empty %}
+        <li>Nenhum item cadastrado</li>
+        {% endfor %}
+      </ul>
 
-        <div class="botoes-acoes">
-          <button type="submit" formaction="{% url 'editar_unidade'}">Editar</button>
-          <button type="submit" formaction="{% url 'excluir_unidade'}">Excluir</button>
-        </div>
-      </form>
+      <div class="botoes-acoes">
+        <button type="submit" formaction="{% url 'editar_unidade' %}">Editar</button>
+        <button type="submit">Excluir</button>
+      </div>
+    </form>
+
     </div>
 
 

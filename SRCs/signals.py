@@ -26,7 +26,10 @@ def criar_grupos_com_permissoes(sender, **kwargs):
         ]
     }
 
-    content_type = ContentType.objects.get(app_label='SRCs', model='usuario')
+    try:
+        content_type = ContentType.objects.get(app_label='SRCs', model='usuario')
+    except ContentType.DoesNotExist:
+        return 
 
     for grupo_nome, permissoes in permissoes_por_grupo.items():
         grupo, _ = Group.objects.get_or_create(name=grupo_nome)

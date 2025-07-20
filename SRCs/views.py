@@ -1,33 +1,16 @@
-# Importa a biblioteca para manipulação de planilhas Excel
 import openpyxl
-
-# Importa funções do Django para renderizar templates e redirecionar páginas
-from django.shortcuts import render, redirect
-
-# Importa os formulários definidos no projeto
-from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFaturaForm
-
-# Importa os modelos (tabelas do banco de dados)
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFaturaForm, FormularioEditarUsuario
 from .models import Unidade, Usuario, Envio, Rateio
-
-# Para exibir mensagens ao usuário (sucesso, erro etc.)
 from django.contrib import messages
-
-# Para trabalhar com datas
 import datetime
-
-# Para trabalhar com valores decimais de forma precisa
 from decimal import Decimal, InvalidOperation
-
-#biblioteca usada para criar planilhas excel 
 from openpyxl import Workbook
-
-#para enviar o arquivo excel como download
-from django.http import HttpResponse, HttpResponseForbidden
-
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from urllib.parse import urlencode
 
 
 # View da página inicial
@@ -52,12 +35,11 @@ def home(request):
     dados = Envio.objects.select_related('user', 'remetente', 'destinatario').order_by('-data_solicitacao')[:5]
     return render(request, 'SRCs/home.html', {'dados': dados})
 
-
 # View que lista todos os usuários (acesso apenas para quem tem permissão)
 @login_required
 @permission_required('SRCs.editar_usuario', raise_exception=True)
 def user(request):
-    usuarios = Usuario.objects.all()
+    usuarios = Usuario.objects.filter(ativo=True)
     return render(request, 'SRCs/user.html', {'usuarios': usuarios})
 
 
@@ -69,34 +51,40 @@ def cadastro_user(request):
         form = formularioUser(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Usuário cadastrado com sucesso!')
-            return redirect('login')  # ou outro lugar após o cadastro
+            return redirect('user') 
     else:
         form = formularioUser()
     
     return render(request, 'SRCs/form_user.html', {'form': form})
 
 
+
 # View para cadastrar unidades
 @login_required
 @permission_required('SRCs.cadastrar_unidade', raise_exception=True)
 def cadastro_unidade(request):
+    id_unidade = request.GET.get('ids') or request.POST.get('id')  # <- IMPORTANTE: buscar o id no GET (GET request) ou POST (ao submeter)
+    unidade = Unidade.objects.filter(id=id_unidade).first() if id_unidade else None
+    print('Form instância:', unidade)
+
     if request.method == 'POST':
-        form = formularioUnidade(request.POST)
+        form = formularioUnidade(request.POST, instance=unidade)  # <- Aqui está a chave
         if form.is_valid():
             form.save()
-            return redirect('unidade')
+            return redirect('unidade')  # ou onde quiser redirecionar
     else:
-        form = formularioUnidade()
+        form = formularioUnidade(instance=unidade)
 
-    return render(request, 'SRCs/form_und.html', {'form': form})
+    modo = 'editar' if unidade else 'cadastrar'
+
+    return render(request, 'SRCs/form_und.html', {'form': form, 'modo': modo})
 
 
 # View que lista todas as unidades
 @login_required
 @permission_required('SRCs.editar_unidade', raise_exception=True)
 def unidade(request):
-    unidades = Unidade.objects.all()
+    unidades = Unidade.objects.filter(excluida=False)
     return render(request, 'SRCs/unidade.html', {'unidades': unidades})
 
 
@@ -114,11 +102,7 @@ def cadastro_envio(request):
 
     return render(request, 'SRCs/form_envio.html', {'form': form})
 
-
 # Função auxiliar para converter valores em decimal de forma segura
-
-
-
 def safe_decimal(valor):
     try:
         if valor is None:
@@ -136,7 +120,6 @@ def safe_decimal(valor):
     
     except (InvalidOperation, ValueError) as e:
         raise ValueError(f"Valor inválido para Decimal: {valor}")
-
 
 # View que faz o processamento da fatura (rateio)
 @login_required
@@ -299,7 +282,6 @@ def rateio(request):
     # Renderiza a página com os dados e o formulário de upload
     return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos}) 
 
-
 def exportar_rateio(request):
     #Mostra os dados completos 
     envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
@@ -396,10 +378,61 @@ def acompanhamento(request):
 def editar_unidade(request):
     if request.method == 'POST':
         selecionados = request.POST.getlist('selecionados')
-        return redirect('cadastro_unidade', ids=selecionados)
+        params = urlencode({'ids': ','.join(selecionados)})
+        return redirect(f'/home/unidades/novo?{params}')
+    return redirect('cadastro_unidade')
     
-def excluir_unidade(request):
+def excluir_unidade(request, unidade_id):
+    unidade = get_object_or_404(Unidade, id=unidade_id)
+    unidade.excluida = True
+    unidade.cnpj = None
+    unidade.save()
+    return redirect('unidade')
+
+def excluir_unidades_multiplo(request):
     if request.method == 'POST':
-        selecionados = request.POST.getlist('selecionados')
-        Unidade.objects.filter(id__in=selecionados).delete()
+        print('POST recebido')
+        ids = request.POST.getlist('selecionados')
+        print('IDs selecionados:', ids)
+        for unidade_id in ids:
+            unidade = get_object_or_404(Unidade, id=unidade_id)
+            unidade.excluida = True
+            unidade.cnpj = None
+            unidade.save()
         return redirect('unidade')
+    else:
+        print('Não é POST')
+    # Se não for POST, apenas redireciona
+    return redirect('unidade')
+
+# views.py
+
+from django.shortcuts import get_object_or_404
+
+def editar_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    if request.method == 'POST':
+        form = FormularioEditarUsuario(request.POST, instance=usuario, usuario_django=usuario.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário atualizado com sucesso!')
+            return redirect('user') 
+    else:
+        form = FormularioEditarUsuario(instance=usuario, usuario_django=usuario.user)
+
+    return render(request, 'SRCs/form_editar_usuario.html', {'form': form, 'usuario': usuario})
+
+def excluir_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    usuario.ativo = False
+    usuario.save()
+
+    # Marcar e-mail como desativado, mas mantendo histórico
+    usuario.user.email = f"{usuario.user.email}-desativado-{usuario.id}"
+    usuario.user.save()
+
+    messages.success(request, 'Usuário desativado com sucesso!')
+    return redirect('user')
+

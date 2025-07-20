@@ -9,11 +9,23 @@
     <title>Cadastro de Unidade</title>
 </head>
 <body>
+    {% if modo == 'editar' %}
+    <h2>Editando Unidade</h2>
+    <!-- preencher campos com os dados -->
+    {% else %}
+        <h2>Cadastro de Unidade</h2>
+        <!-- formulário em branco -->
+    {% endif %}
+
     {% include 'SRCs/menu_lateral.html' %}
     <h1>Cadastro de Unidade</h1>
     <div class="container-formulario">
         <form action="{% url 'cadastro_unidade' %}" method="POST">
             {% csrf_token %}
+            {% if modo == 'editar' and form.instance.pk %}
+                <input type="hidden" name="id" value="{{ form.instance.pk }}">
+            {% endif %}
+
             <div class="linha">
                 {% for field in form.visible_fields %}
                     <div class="campo">
@@ -22,7 +34,7 @@
                     </div>
                 {% endfor %}
             </div>
-            <input type="submit" value="Cadastrar">
+            <input type="submit" value="{% if modo == 'editar' %}Salvar Alterações{% else %}Cadastrar{% endif %}">
         </form>
     </div>
 </body>
