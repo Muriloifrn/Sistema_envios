@@ -11,6 +11,10 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from urllib.parse import urlencode
+from django.db.models.functions import TruncMonth
+from django.db.models import Count
+import json
+import calendar
 
 
 # View da página inicial
@@ -367,8 +371,69 @@ def exportar_rateio(request):
 # View do painel de gráficos
 @login_required
 @permission_required('SRCs.consultar_dashboard', raise_exception=True)
+
 def dashboard(request):
-    return render(request, 'SRCs/graficos.html')
+
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+
+    # Gráfico 1: Envios por mês (Rateio)
+    rateios = Rateio.objects.exclude(data_postagem=None)
+    if data_inicio:
+        rateios = rateios.filter(data_postagem__gte=data_inicio)
+    if data_fim:
+        rateios = rateios.filter(data_postagem__lte=data_fim)
+
+    dados = (
+        rateios
+        .annotate(mes=TruncMonth('data_postagem'))
+        .values('mes')
+        .annotate(qtd=Count('id'))
+        .order_by('mes')
+    )
+
+    labels = [f"{item['mes'].strftime('%b/%Y')}" for item in dados]
+    valores = [item['qtd'] for item in dados]
+
+    # Inicializa contexto
+    context = {
+        'labels': json.dumps(labels),
+        'valores': json.dumps(valores),
+    }
+
+    # Filtro aplicado ao Envio também
+    envios = Envio.objects.all()
+    if data_inicio:
+        envios = envios.filter(data_solicitacao__gte=data_inicio)
+    if data_fim:
+        envios = envios.filter(data_solicitacao__lte=data_fim)
+
+    # Gráfico 2: Envios por unidade remetente
+    envios_por_remetente = (
+        envios
+        .values('remetente__shopping')
+        .annotate(total=Count('etiqueta'))
+        .order_by('-total')
+    )
+    remetentes = [item['remetente__shopping'] or "Não informado" for item in envios_por_remetente]
+    envios_qtd = [item['total'] for item in envios_por_remetente]
+    context['remetentes'] = json.dumps(remetentes)
+    context['qtd_envios'] = json.dumps(envios_qtd)
+
+    # Gráfico 3: Envios por unidade destinatária
+    envios_por_destinatario = (
+        envios
+        .values('destinatario__shopping')
+        .annotate(total=Count('etiqueta'))
+        .order_by('-total')
+    )
+    destinatarios = [item.get('destinatario__shopping') or 'Não informado' for item in envios_por_destinatario]
+    destinatarios_qtd = [item.get('total', 0) for item in envios_por_destinatario]
+    context['destinatarios'] = json.dumps(destinatarios)
+    context['qtd_destinatarios'] = json.dumps(destinatarios_qtd)
+
+    return render(request, 'SRCs/graficos.html', context)
+
 
 @login_required
 @permission_required('SRCs.acompanhar_envio', raise_exception=True)
@@ -404,10 +469,6 @@ def excluir_unidades_multiplo(request):
         print('Não é POST')
     # Se não for POST, apenas redireciona
     return redirect('unidade')
-
-# views.py
-
-from django.shortcuts import get_object_or_404
 
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)

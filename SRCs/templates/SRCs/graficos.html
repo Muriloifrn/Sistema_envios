@@ -5,9 +5,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/graficos.css' %}">
     <title>Document</title>
 </head>
 <body>
-    <h1>graficos</h1>
+    
+    {% block content %}
+    <h1>Dashboard de Envios</h1>
+
+    <form method="get" class="filtro-form">
+        <label for="data_inicial">Data inicial:</label>
+        <input type="date" name="data_inicio" id="data_inicio" value="{{request.GET.data_inicio}}">
+
+        <label for="data_fim">Data final:</label>
+        <input type="date" name="data_fim" id="data_fim" value="{{ request.GET.data_fim }}">
+
+        <button type="submit">Filtrar</button>
+    </form>
+    <h2>Quantidade de Envios Período</h2>
+        <div class="grafico-container">
+            <canvas id="graficoEnvios"></canvas>
+        </div>
+
+    <h2>Envios por Lojas</h2>
+    <div class="grafico-container">
+        <canvas id="graficoRemetentes"></canvas>
+        <canvas id="graficoDestinatarios"></canvas>
+    </div>
+
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const ctx = document.getElementById('graficoEnvios').getContext('2d');
+        const graficoEnvio = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels|safe }},
+                datasets: [{
+                    label: 'Envios por mês', 
+                    data: {{ valores|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('graficoRemetentes').getContext('2d');
+        const graficoRemetentes = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: {{ remetentes|safe }},
+                datasets: [{
+                    label: 'Envios por unidade remetente',
+                    data: {{ qtd_envios|safe }},
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y', 
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('graficoDestinatarios').getContext('2d');
+        const graficoDestinatarios = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: {{ destinatarios|safe }},
+                datasets: [{
+                    label: 'Envios por unidade destinatária',
+                    data: {{ qtd_destinatarios|safe }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
 </body>
 </html>
