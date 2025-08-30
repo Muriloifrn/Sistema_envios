@@ -3,41 +3,189 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/lista.css' %}">
-    <title>Unidades</title>
+    <title>Editar Unidade</title>
+    <link rel="stylesheet" href="{% static 'SRCs/css/usuarios.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  {% include 'SRCs/menu_lateral.html' %}
 
-    <div class="conteudo-centro">
-      <h2>Unidades Cadastradas</h2>
+    {% include 'SRCs/menu_lateral_oculto.html' %}
+    {% include 'SRCs/icone_user.html' %}
 
-    <form method="post" action="{% url 'excluir_unidades_multiplo' %}">
-      {% csrf_token %}
-      <ul class="lista-itens">
-        {% for item in unidades %}
-        <li>
-          <label>
-            <input type="checkbox" name="selecionados" value="{{ item.id }}">
-            {{ item.shopping }} - {{ item.cnpj }} - {{ item.empresa }}
-          </label>
-        </li>
+<div class="container">
+    <h1 class="titulo">Unidades Cadastradas</h1>
+
+    <table class="tabela-usuarios">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>Shopping</th>
+                <th>CNPJ</th>
+                <th>Empresa</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for unidade in unidades %}
+            <tr>
+                <td><input type="checkbox" class="checkbox-unidade" data-id="{{ unidade.id }}"></td>
+                <td>{{ unidade.shopping }}</td>
+                <td>{{ unidade.cnpj }}</td>
+                <td>{{ unidade.empresa }}</td>
+            </tr>
         {% empty %}
-        <li>Nenhum item cadastrado</li>
+            <tr>
+                <td colspan="4" style="text-align:center;">Nenhuma unidade cadastrada</td>
+            </tr>
         {% endfor %}
-      </ul>
+        </tbody>
+    </table>
 
-      <div class="botoes-acoes">
-        <button type="submit" formaction="{% url 'editar_unidade' %}">Editar</button>
-        <button type="submit">Excluir</button>
-      </div>
-    </form>
-
+    <div class="acoes-tabela">
+        <button id="btnEditar" class="btn" disabled><i class="fa fa-pen"></i> Editar</button>
+        <button id="btnExcluir" class="btn excluir" disabled><i class="fa fa-trash"></i> Excluir</button>
     </div>
+</div>
 
+<!-- Modal Editar Unidade -->
+<div id="modalEditar" class="modal">
+    <div class="modal-content">
+        <span id="fecharModal" class="close">&times;</span>
+        <h2>Editar Unidade</h2>
+        <form id="formEditarUnidade" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="unidade_id" id="unidadeId">
+
+            <label>Shopping:</label>
+            <input type="text" name="shopping" id="shopping" required>
+
+            <label>CNPJ:</label>
+            <input type="text" name="cnpj" id="cnpj" required>
+
+            <label>Empresa:</label>
+            <input type="text" name="empresa" id="empresa" required>
+
+            <button type="submit" class="btn salvar">Salvar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.checkbox-unidade');
+    const btnEditar = document.getElementById('btnEditar');
+    const btnExcluir = document.getElementById('btnExcluir');
+    const modal = document.getElementById('modalEditar');
+    const fecharModal = document.getElementById('fecharModal');
+    const formEditar = document.getElementById('formEditarUnidade');
+
+    function atualizarBotoes() {
+        const selecionados = document.querySelectorAll('.checkbox-unidade:checked').length;
+        btnEditar.disabled = selecionados !== 1;
+        btnExcluir.disabled = selecionados === 0;
+    }
+
+    atualizarBotoes();
+
+    selectAll.addEventListener('change', () => {
+        checkboxes.forEach(chk => chk.checked = selectAll.checked);
+        atualizarBotoes();
+    });
+
+    checkboxes.forEach(chk => {
+        chk.addEventListener('change', () => {
+            if (!chk.checked) selectAll.checked = false;
+            else if (document.querySelectorAll('.checkbox-unidade:checked').length === checkboxes.length) {
+                selectAll.checked = true;
+            }
+            atualizarBotoes();
+        });
+    });
+
+    // ---- Editar ----
+    btnEditar.addEventListener('click', () => {
+        const selecionado = document.querySelector('.checkbox-unidade:checked');
+        if (!selecionado) return;
+        const unidadeId = selecionado.dataset.id;
+
+        fetch(`/unidades/detalhes/${unidadeId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('unidadeId').value = data.id;
+                document.getElementById('shopping').value = data.shopping;
+                document.getElementById('cnpj').value = data.cnpj;
+                document.getElementById('empresa').value = data.empresa;
+                modal.style.display = 'flex';
+            });
+    });
+
+    fecharModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    formEditar.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(formEditar);
+
+        fetch(`/unidades/editar/${formData.get('unidade_id')}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            modal.style.display = 'none';
+            location.reload();
+        });
+    });
+
+    // ---- Excluir ----
+    btnExcluir.addEventListener("click", () => {
+        const selecionados = document.querySelectorAll(".checkbox-unidade:checked");
+        if (selecionados.length === 0) return;
+
+        if (!confirm("Realmente deseja excluir as unidades selecionadas?")) return;
+
+        const ids = Array.from(selecionados).map(chk => chk.dataset.id);
+
+        fetch(`/unidades/excluir/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({ ids })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Unidade(s) excluída(s) com sucesso!");
+                location.reload();
+            } else {
+                alert("Erro ao excluir unidade(s).");
+            }
+        })
+        .catch(error => console.error("Erro:", error));
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
 
 </body>
 </html>

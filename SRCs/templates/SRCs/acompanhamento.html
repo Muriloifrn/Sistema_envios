@@ -1,11 +1,53 @@
+{% load static %}
+{% block content %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/acompanhamento.css' %}">
     <title>Acompanhamento</title>
 </head>
 <body>
-    <h1>Em contrução...</h1>
+    <h1>Acompanhamento de Envios</h1>
+
+    <table class="tabela-envios">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Situação</th>
+                <th>Remetente</th>
+                <th>Destinatario</th>
+                <th>Solicitante</th>
+                <th>Data da Solicitação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%for envio in envios %}
+            <tr class="status-{{ envio.status }}">
+                <td> 
+                    <a href="{% url 'detalhe_envio' envio.etiqueta %}">
+                        ENV-{{ envio.id_visual }}
+                    </a> 
+                </td>
+                <td>{{ envio.get.status_display }}</td>
+                <td>{{ envio.remetente }}</td>
+                <td>{{ envio.destinatario }}</td>
+                <td>{{ envio.user.user.username }}</td>
+                <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">Nenhum envio encontrado</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% endblock %}
+
+
 </body>
 </html>

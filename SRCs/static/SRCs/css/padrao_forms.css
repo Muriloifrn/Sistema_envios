@@ -1,63 +1,139 @@
-.container-formulario {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 110px);
-    margin-left: 300px;
+/* ======== Reset básico ======== */
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    padding: 20px;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
-form {
-    width: 950px;
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.linha {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.campo {
-    flex: 1;
+/* ======== Estilo geral ======== */
+body {
+    background-image: url('../imagens/Fundo-home.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #333;
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
-    min-width: 200px;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+}
+
+/* ======== Título ======== */
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    color: #2c3e50;
+    text-align: center;
+}
+
+/* ======== Container do formulário ======== */
+.container-formulario {
+    background: #fff;
+    width: 100%;
+    max-width: 700px; /* aumentei para caber 2 colunas */
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ======== Linha de campos (2 colunas) ======== */
+.linha {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 campos por linha */
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+/* ======== Campos ======== */
+.campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
 }
 
 .campo input,
 .campo select,
 .campo textarea {
-    padding: 6px 8px;
-    font-size: 14px;
-    border-radius: 6px;
+    padding: 10px;
     border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
-.botoes {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+/* Hover e foco */
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52,152,219,0.3);
+    outline: none;
 }
 
-.botoes button,
-input[type="submit"] {
-    padding: 10px 20px;
+/* ======== Botões ======== */
+.container-formulario input[type="submit"],
+.container-formulario button[type="submit"] {
+    background: #3498db;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 16px;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
     cursor: pointer;
-    color: white;
-    background-color: #003762;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.botoes button:hover,
-input[type="submit"]:hover {
-    opacity: 0.9;
+.container-formulario input[type="submit"]:hover,
+.container-formulario button[type="submit"]:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+button {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin-right: 8px;
+}
+
+button[type="submit"] {
+    background: #3498db;
+    color: #fff;
+    font-weight: 600;
+}
+
+button[type="submit"]:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+button[type="button"] { /* botão importar */
+    background: #27ae60;
+    color: #fff;
+    font-weight: 600;
+}
+
+button[type="button"]:hover {
+    background: #1e8449;
+    transform: scale(1.05);
+}
+
+/* ======== Mensagens de erro ======== */
+.error {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 4px;
 }

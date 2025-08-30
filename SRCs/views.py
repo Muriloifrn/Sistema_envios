@@ -1,7 +1,7 @@
 import openpyxl
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFaturaForm, FormularioEditarUsuario
-from .models import Unidade, Usuario, Envio, Rateio
+from .forms import formularioUnidade, formularioUser, formularioEnvio, UploadFaturaForm, FormularioEditarUsuario, formularioItemEnvio
+from .models import Unidade, Usuario, Envio, Rateio, ItemEnvio
 from django.contrib import messages
 import datetime
 from decimal import Decimal, InvalidOperation
@@ -12,9 +12,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from urllib.parse import urlencode
 from django.db.models.functions import TruncMonth
-from django.db.models import Count
+from django.db.models import Count, Sum
 import json
-import calendar
+from django.http import HttpResponse
+from django.db.models import Q
+from django.forms import inlineformset_factory
+import pandas as pd
+from .utils import gerar_pdf_declaracao  # Corrigir nome e acentuação
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 
 # View da página inicial
@@ -36,16 +42,42 @@ def login_view(request):
 # View da home após login
 @login_required
 def home(request):
-    dados = Envio.objects.select_related('user', 'remetente', 'destinatario').order_by('-data_solicitacao')[:5]
-    return render(request, 'SRCs/home.html', {'dados': dados})
+    usuario_logado = Usuario.objects.get(user=request.user)
+
+    ultimos_envios = Envio.objects.all().order_by('-data_solicitacao')[:4]
+    pendentes = Envio.objects.filter(usuario_destinatario=usuario_logado, status='Pendente')
+
+    return render(request, 'SRCs/home.html', {
+        'ultimos_envios': ultimos_envios,
+        'pendentes': pendentes,
+    })
 
 # View que lista todos os usuários (acesso apenas para quem tem permissão)
 @login_required
 @permission_required('SRCs.editar_usuario', raise_exception=True)
 def user(request):
-    usuarios = Usuario.objects.filter(ativo=True)
-    return render(request, 'SRCs/user.html', {'usuarios': usuarios})
+    # Se for POST, estamos editando um usuário via modal
+    if request.method == "POST":
+        usuario_id = request.POST.get('usuario_id')
+        usuario = get_object_or_404(Usuario, pk=usuario_id)
 
+        # Atualiza os campos do usuário
+        usuario.user.first_name = request.POST.get('nome')
+        usuario.user.email = request.POST.get('email')
+
+        # Atualiza unidade se enviada
+        unidade_id = request.POST.get('unidade')
+        if unidade_id:
+            usuario.unidade_id = unidade_id
+
+        usuario.user.save()
+        usuario.save()
+        messages.success(request, "Usuário atualizado com sucesso!")
+        return redirect('user')  # volta para a mesma página
+
+    # GET: lista os usuários
+    usuarios = Usuario.objects.filter(ativo=True).select_related('user', 'unidade')
+    return render(request, 'SRCs/user.html', {'usuarios': usuarios})
 
 # View para cadastrar novos usuários
 @login_required
@@ -61,6 +93,51 @@ def cadastro_user(request):
     
     return render(request, 'SRCs/form_user.html', {'form': form})
 
+
+
+def importar_unidade(request):
+    if request.method == 'POST' and request.FILES.get('arquivo_excel'):
+        arquivo = request.FILES['arquivo_excel']
+        try:
+            # Ler o Excel
+            df = pd.read_excel(arquivo)
+
+            # Campos esperados no Excel
+            campos_esperados = [
+                'cnpj', 'centro_custo', 'cep', 'bairro', 'rua', 'numero',
+                'shopping', 'cidade', 'estado', 'regional', 'numero_unidade', 'empresa'
+            ]
+
+            # Verificar se todos os campos estão presentes
+            for campo in campos_esperados:
+                if campo not in df.columns:
+                    messages.error(request, f"Coluna '{campo}' não encontrada no Excel.")
+                    return redirect('cadastro_unidade')
+
+            # Criar as unidades
+            for _, row in df.iterrows():
+                Unidade.objects.update_or_create(
+                    cnpj=row['cnpj'],
+                    defaults={
+                        'centro_custo': row['centro_custo'],
+                        'cep': row['cep'],
+                        'bairro': row['bairro'],
+                        'rua': row['rua'],
+                        'numero': row['numero'],
+                        'shopping': row['shopping'],
+                        'cidade': row['cidade'],
+                        'estado': row['estado'],
+                        'regional': row['regional'],
+                        'numero_unidade': row['numero_unidade'],
+                        'empresa': row['empresa']
+                    }
+                )
+
+            messages.success(request, "Unidades importadas com sucesso!")
+        except Exception as e:
+            messages.error(request, f"Erro ao importar: {e}")
+
+    return redirect('cadastro_unidade')
 
 
 # View para cadastrar unidades
@@ -84,6 +161,7 @@ def cadastro_unidade(request):
     return render(request, 'SRCs/form_und.html', {'form': form, 'modo': modo})
 
 
+
 # View que lista todas as unidades
 @login_required
 @permission_required('SRCs.editar_unidade', raise_exception=True)
@@ -91,6 +169,12 @@ def unidade(request):
     unidades = Unidade.objects.filter(excluida=False)
     return render(request, 'SRCs/unidade.html', {'unidades': unidades})
 
+ItemEnvioFormSet = inlineformset_factory(
+    Envio, ItemEnvio,
+    form=formularioItemEnvio,
+    extra=1,  # quantidade inicial de formulários de item
+    can_delete=True
+)
 
 # View para cadastrar um envio (ex: envio pelos Correios)
 @login_required
@@ -98,13 +182,36 @@ def unidade(request):
 def cadastro_envio(request):
     if request.method == 'POST':
         form = formularioEnvio(request.POST)
-        if form.is_valid():
-            form.save()
+        formset = ItemEnvioFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            envio = form.save(commit=False)
+            
+            # ✅ se o seu User é customizado (Usuario), use isso:
+            # envio.user = request.user.usuario
+            # caso contrário, se for o padrão do Django:
+            envio.user = request.user  
+
+            envio.save()
+
+            itens = formset.save(commit=False)
+            for item in itens:
+                item.envio = envio
+                item.save()
+
+            # ✅ chama direto a função do utils
+            if request.POST.get("gerar_pdf") == "sim":
+                return gerar_pdf_declaracao(envio)
+
             return redirect('home')
     else:
         form = formularioEnvio()
+        formset = ItemEnvioFormSet()
 
-    return render(request, 'SRCs/form_envio.html', {'form': form})
+    return render(request, 'SRCs/form_envio.html', {
+        'form': form,
+        'formset': formset
+    })
 
 # Função auxiliar para converter valores em decimal de forma segura
 def safe_decimal(valor):
@@ -223,35 +330,39 @@ def rateio(request):
 
     dados_completos = []
 
-    # Monta os dados completos juntando envio + rateio
     for envio in envios:
         rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
-        
+
+        # Conteúdo concatenado de todos os itens do envio
+        conteudo_envio = ", ".join([item.conteudo for item in envio.itens.all()])
+
+        # Cartão de postagem via Usuario
+        cartao_postagem = getattr(getattr(envio.user, 'usuario', None), 'cartao_postagem', '')
+
         dados_completos.append({
             'fatura': rateio.fatura if rateio else 'PENDENTE',
-            'solicitante': envio.user.user.get_full_name() or envio.user.user.username,
-            'motivo': envio.motivo,
-            'conteudo': envio.conteudo,
-            'cartao_postagem': envio.user.cartao_postagem,
-            'titular_cartao': rateio.titular_cartao if rateio else '',
-            'servico': rateio.servico if rateio else '',
-            'numero_autorizacao': envio.numero_autorizacao,
-            'etiqueta': envio.etiqueta,
-            'data_postagem': rateio.data_postagem if rateio else '',
-            'unidade_postagem': rateio.unidade_postagem if rateio else '',
-            'remetente': envio.remetente.shopping,
-            'destinatario': envio.destinatario.shopping,
-            'valor_declarado': rateio.valor_declarado if rateio else '',
-            'valor_unitario': rateio.valor_unitario if rateio else '',
-            'quantidade': envio.quantidade,
-            'peso': rateio.peso if rateio else '',
-            'servico_adicionais': rateio.servico_adicionais if rateio else '',
-            'valor_liquido': rateio.valor_liquido if rateio else '',
-            'desconto': rateio.desconto if rateio else '',
-            'centro_custo': envio.destinatario.centro_custo,
-            'empresa': envio.destinatario.empresa,
+            'solicitante': envio.user.get_full_name() or envio.user.username,
+            'motivo': getattr(envio, 'motivo', ''),
+            'conteudo': conteudo_envio,
+            'cartao_postagem': cartao_postagem,
+            'titular_cartao': getattr(rateio, 'titular_cartao', ''),
+            'servico': getattr(rateio, 'servico', ''),
+            'numero_autorizacao': getattr(envio, 'numero_autorizacao', ''),
+            'etiqueta': getattr(envio, 'etiqueta', ''),
+            'data_postagem': getattr(rateio, 'data_postagem', ''),
+            'unidade_postagem': getattr(rateio, 'unidade_postagem', ''),
+            'remetente': getattr(envio.remetente, 'shopping', ''),
+            'destinatario': getattr(envio.destinatario, 'shopping', ''),
+            'valor_declarado': getattr(rateio, 'valor_declarado', ''),
+            'valor_unitario': getattr(rateio, 'valor_unitario', ''),
+            'quantidade': getattr(envio, 'quantidade', ''),  # se tiver no envio ou somar itens
+            'peso': getattr(rateio, 'peso', ''),
+            'servico_adicionais': getattr(rateio, 'servico_adicionais', ''),
+            'valor_liquido': getattr(rateio, 'valor_liquido', ''),
+            'desconto': getattr(rateio, 'desconto', ''),
+            'centro_custo': getattr(envio.destinatario, 'centro_custo', ''),
+            'empresa': getattr(envio.destinatario, 'empresa', ''),
         })
-
         etiquetas_processadas.add(envio.etiqueta)
 
     # Adiciona os rateios que não têm envio correspondente
@@ -432,68 +543,209 @@ def dashboard(request):
     context['destinatarios'] = json.dumps(destinatarios)
     context['qtd_destinatarios'] = json.dumps(destinatarios_qtd)
 
-    return render(request, 'SRCs/graficos.html', context)
+    # Gráfico 4: Gastos por unidade destinatária
+    gastos_por_destinatario = (
+        rateios
+        .filter(etiqueta__destinatario__isnull=False)
+        .values('etiqueta__destinatario__shopping')
+        .annotate(total_gasto=Sum('valor_liquido'))
+        .order_by('-total_gasto')
+    )
 
+    unidades_destino = [item.get('etiqueta__destinatario__shopping') or 'Não informado' for item in gastos_por_destinatario]
+    valores_gastos = [float(item.get('total_gasto') or 0) for item in gastos_por_destinatario]
+
+    context['unidades_destino'] = json.dumps(unidades_destino)
+    context['valores_gastos'] = json.dumps(valores_gastos)
+    
+    # Gráfico 5: Quantidade de envios por usuário
+    envios_por_usuario = (
+        envios
+        .values('user__username')
+        .annotate(total=Count('etiqueta'))
+        .order_by('-total')
+    )
+
+    usuarios = [item.get('user__username') or 'Desconhecido' for item in envios_por_usuario]
+    qtd_envios_usuario = [item.get('total') for item in envios_por_usuario]
+
+    context['usuarios'] = json.dumps(usuarios)
+    context['qtd_envios_usuario'] = json.dumps(qtd_envios_usuario)
+
+
+    return render(request, 'SRCs/graficos.html', context)
 
 @login_required
 @permission_required('SRCs.acompanhar_envio', raise_exception=True)
 def acompanhamento(request):
-    return render(request, 'SRCs/acompanhamento.html')
+    usuario = Usuario.objects.filter(user=request.user).first()
 
-def editar_unidade(request):
-    if request.method == 'POST':
-        selecionados = request.POST.getlist('selecionados')
-        params = urlencode({'ids': ','.join(selecionados)})
-        return redirect(f'/home/unidades/novo?{params}')
-    return redirect('cadastro_unidade')
+    if not usuario:
+        messages.error(request, "Usuário sem vínculo com unidade.")
+        return redirect('home')
     
-def excluir_unidade(request, unidade_id):
-    unidade = get_object_or_404(Unidade, id=unidade_id)
-    unidade.excluida = True
-    unidade.cnpj = None
-    unidade.save()
-    return redirect('unidade')
+    unidade_usuario = usuario.unidade
 
-def excluir_unidades_multiplo(request):
+    envios = Envio.objects.filter(
+        Q(remetente=unidade_usuario) |
+        (Q(destinatario=unidade_usuario) & Q(usuario_destinatario__in=[usuario, None])) |
+        Q(user=request.user)   # <<< aqui era o problema
+    ).order_by('-data_solicitacao')
+    context = {
+        'envios': envios,
+        'usuario': usuario
+    }
+
+    return render(request, 'SRCs/acompanhamento.html', context)
+
+@login_required
+def detalhe_envio(request, etiqueta):
+    envio = get_object_or_404(Envio, etiqueta=etiqueta)
+    usuario = Usuario.objects.filter(user=request.user).first()
+
+    if not usuario:
+        messages.error(request, "Usuário sem vínculo com unidade.")
+        return redirect('acompanhamento')
+    
+    is_remetente = envio.remetente == usuario.unidade
+    is_destinatario = envio.destinatario == usuario.unidade and (
+    envio.usuario_destinatario == usuario or envio.usuario_destinatario is None
+    )
+
     if request.method == 'POST':
-        print('POST recebido')
-        ids = request.POST.getlist('selecionados')
-        print('IDs selecionados:', ids)
-        for unidade_id in ids:
-            unidade = get_object_or_404(Unidade, id=unidade_id)
-            unidade.excluida = True
-            unidade.cnpj = None
-            unidade.save()
-        return redirect('unidade')
-    else:
-        print('Não é POST')
-    # Se não for POST, apenas redireciona
-    return redirect('unidade')
+        if is_remetente and envio.status == 'pendente_envio':
+            data_postagem = request.POST.get('data_postagem')
+            previsao_chegada = request.POST.get('previsao_chegada')
 
+            if not data_postagem:
+                messages.error(request, "A data da postagem é obrigatória.")
+            else:
+                envio.data_postagem = data_postagem
+                envio.previsao_chegada = previsao_chegada or None
+                envio.status = 'aguardando_recebimento'
+                envio.save()
+                messages.success(request, "Informações atualizadas com sucesso.")
+                return redirect('detalhe_envio', etiqueta=envio.etiqueta)
+
+        elif is_destinatario and envio.status == 'aguardando_recebimento':
+            data_chegada = request.POST.get('data_chegada')
+
+            if not data_chegada:
+                messages.error(request, "A data da chegada é obrigatória.")
+            else:
+                envio.data_chegada = data_chegada
+                envio.status = 'entregue'
+                envio.save()
+                messages.success(request, "Recebimento confirmado com sucesso.")
+                return redirect('detalhe_envio', etiqueta=envio.etiqueta)
+
+
+    context = {
+        'envio': envio,
+        'usuario': usuario,
+        'is_remetente': is_remetente,
+        'is_destinatario': is_destinatario,
+    }
+
+    return render(request, 'SRCs/detalhe_envio.html', context)
+
+@csrf_exempt
+def editar_unidade_ajax(request, unidade_id):
+    unidade = get_object_or_404(Unidade, id=unidade_id)
+    if request.method == "POST":
+        unidade.shopping = request.POST.get('shopping')
+        unidade.cnpj = request.POST.get('cnpj')
+        unidade.empresa = request.POST.get('empresa')
+        unidade.save()
+        return JsonResponse({'message': 'Unidade editada com sucesso!'})
+    return JsonResponse({'message': 'Método não permitido'}, status=405)
+
+def detalhes_unidade(request, unidade_id):
+    unidade = get_object_or_404(Unidade, id=unidade_id)
+    data = {
+        'id': unidade.id,
+        'shopping': unidade.shopping,
+        'cnpj': unidade.cnpj,
+        'empresa': unidade.empresa
+    }
+    return JsonResponse(data)
+
+@csrf_exempt
+def excluir_unidades_ajax(request):
+    if request.method == "POST":
+        import json
+        try:
+            data = json.loads(request.body)
+            ids = data.get("ids", [])
+            if not ids:
+                return JsonResponse({"error": "Nenhuma unidade selecionada."}, status=400)
+            Unidade.objects.filter(id__in=ids).update(excluida=True, cnpj=None)
+            return JsonResponse({"message": "Unidade(s) excluída(s) com sucesso!"})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Método não permitido."}, status=405)
+
+
+@csrf_exempt
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
     if request.method == 'POST':
-        form = FormularioEditarUsuario(request.POST, instance=usuario, usuario_django=usuario.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Usuário atualizado com sucesso!')
-            return redirect('user') 
-    else:
-        form = FormularioEditarUsuario(instance=usuario, usuario_django=usuario.user)
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        perfil = request.POST.get('perfil')
+        cartao_postagem = request.POST.get('cartao_postagem')
 
-    return render(request, 'SRCs/form_editar_usuario.html', {'form': form, 'usuario': usuario})
+        usuario.user.username = username
+        usuario.user.email = email
+        if password:
+            usuario.user.set_password(password)
+        usuario.user.save()
 
-def excluir_usuario(request, usuario_id):
+        usuario.perfil = perfil
+        usuario.cartao_postagem = cartao_postagem
+        usuario.save()
+
+        return JsonResponse({'message': 'Usuário atualizado com sucesso!'})
+
+@csrf_exempt
+def excluir_usuario(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            ids = data.get("ids", [])
+
+            if not ids:
+                return JsonResponse({"error": "Nenhum usuário selecionado."}, status=400)
+
+            Usuario.objects.filter(id__in=ids).delete()
+
+            return JsonResponse({"message": "Usuário(s) excluído(s) com sucesso!"})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Método não permitido."}, status=405)
+
+def listar_usuarios(request):
+    usuarios = Usuario.objects.filter(ativo=True).select_related('user', 'unidade')  # Evita N+1 queries
+    return render(request, 'SRCs/listar_usuarios.html', {'usuarios': usuarios})
+
+def detalhes_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
+    return JsonResponse({
+        'id': usuario.id,
+        'username': usuario.user.username,
+        'email': usuario.user.email,
+        'perfil': usuario.perfil,
+        'cartao_postagem': usuario.cartao_postagem,
+    })
 
-    usuario.ativo = False
-    usuario.save()
-
-    # Marcar e-mail como desativado, mas mantendo histórico
-    usuario.user.email = f"{usuario.user.email}-desativado-{usuario.id}"
-    usuario.user.save()
-
-    messages.success(request, 'Usuário desativado com sucesso!')
-    return redirect('user')
+def alterar_foto(request):
+    if request.method == "POST" and request.FILES.get('foto'):
+        usuario = request.user.usuario
+        usuario.foto = request.FILES['foto']
+        usuario.save()
+        messages.success(request, "Foto atualizada com sucesso!")
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 

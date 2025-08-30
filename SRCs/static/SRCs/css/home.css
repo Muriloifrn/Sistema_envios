@@ -1,125 +1,15 @@
-/* ---------- Estilo Geral da Tabela ---------- */
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 700px;
-    margin: 0 auto;
-    max-width: 95%;
-    table-layout: fixed;
-    font-size: 14px;
-}
-
-thead th {
-    position: sticky;
-    top: 0;
-    background-color: #003762;
-    color: white;
-    padding: 10px 12px;
-    border-right: 1px solid #999;
-    text-align: left;
-    font-weight: bold;
-    white-space: nowrap;
-    z-index: 1;
-}
-
-tbody tr:nth-child(even) {
-    background-color: #e6f0ff;
-}
-
-tbody tr:nth-child(odd) {
-    background-color: #f4f4f4;
-}
-
-td {
-    padding: 8px 12px;
-    border-right: 1px solid #ddd;
-    white-space: nowrap;
+body
+{
+    background-image: url('../imagens/Fundo-home.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    margin: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
+    font-family: Arial, sans-serif;
 }
 
-table tbody tr {
-    height: 32px;
-}
-
-th:last-child,
-td:last-child {
-    border-right: none;
-}
-
-/* ---------- Botão "Detalhar" ---------- */
-
-.btn-detalhar {
-    padding: 6px 12px;
-    background-color: #0275d8;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background-color 0.2s ease-in-out;
-}
-
-.btn-detalhar:hover {
-    background-color: #025aa5;
-}
-
-/* ---------- Modal ---------- */
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.6);
-}
-
-.modal-content {
-    background-color: #fff;
-    margin: 5% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 600px;
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.fechar {
-    color: #333;
-    float: right;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.fechar:hover {
-    color: red;
-}
-
-/* ---------- Bloco fixo da Tabela ---------- */
-
-.bloco-tabela-fixada {
-    position: fixed;
-    bottom: 30px;
-    
-}
-
-/* ---------- Cabeçalho do bloco da tabela ---------- */
-
-.cabecalho-tabela h1 {
-    font-size: 18px;
-    margin: 5px;
-    padding: 0px 50px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-}
 
 /* ---------- Responsividade para Telas Pequenas ---------- */
 
@@ -157,29 +47,181 @@ td:last-child {
     .modal-content {
         width: 90%;
     }
+    .menu-item {
+        width: 20%;  /* dois por linha em telas menores */
+        height: 20vw;
+    }
+
+    .menu-item img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .menu-item p {
+        font-size: 12px;
+    }
+
+    .menu-container {
+        gap: 10px;
+        padding: 15px;
+        transform: scale(0.8);
+        transform-origin: top center;
+    }
+
+    .bemvindo {
+        font-size: 18px;
+        top: 10px;
+        left: 10px;
+    }
 }
 
-.container-botoes {
-    margin-top: 150px;
+.bemvindo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-size: 25px;
+}
+
+.menu-container {
     display: flex;
-    justify-content: center;     /* Centraliza horizontalmente */
-    align-items: center;
-    gap: 30px;                    /* Espaço entre os botões */
-    flex-wrap: nowrap;           /* ❗Não permite quebra de linha */
-    overflow-x: auto;            /* ❗Adiciona rolagem horizontal se necessário */
+    flex-wrap: wrap;            
+    justify-content: center;    
+    gap: 20px;                  /* Espaço entre os blocos */
+    padding: 30px;
+    max-width: 1200px;           /* Limita a largura para caber 4 por linha */
+    margin: 0 auto;             
+}
+
+
+
+.menu-item {
+    width: 200px;
+    height: 200px;
+    border-radius: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
     padding: 20px;
-}
-
-.botao-img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: trnasform 0.2s;
     cursor: pointer;
-    transition: transform 0.2s ease;
+
 }
 
-.botao-img:hover {
-    transform: scale(1.1);
-}
+.menu-item img {
+    width: 100px;   
+    height: 100px;  
+    margin-bottom: 10px;
 }
 
+.menu-item.f1 {
+    background-color: rgba(102, 93, 93, 0.2);
+}
+
+.menu-item.f2 {
+    background-color: rgba(217, 217, 217, 0.4);
+}
+
+.menu-item.f3 {
+    background-color: rgba(70, 72, 104, 0.4);
+}
+
+.menu-item.f4 {
+    background-color: rgba(217, 217, 217, 0.4);
+}
+
+.menu-item.f5 {
+    background-color: rgba(217, 217, 217, 0.4);
+}
+
+.menu-item.f6 {
+    background-color: rgba(61, 122, 145, 0.4);
+}
+
+.menu-item.f7 {
+    background-color: rgba(217, 217, 217, 0.4);
+}
+
+.menu-item.f8 {
+    background-color: rgba(61, 126, 149, 0.4);
+}
+
+.menu-item:hover {
+    transform: scale(1.05);
+}
+
+.menu-item p {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    margin: 0;
+}
+
+.quadro-envios {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 900px;
+  margin: 40px auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.abas-superior-retangular {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.aba-opcao {
+  flex: 1;
+  text-align: center;
+  padding: 16px 0;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: white;
+  color: #003366;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-bottom: 3px solid transparent;
+}
+
+.aba-opcao.ativa {
+  background-color: #e0e0e0;
+  border-bottom: 3px solid #e0e0e0;
+}
+
+.aba-opcao:not(.ativa):hover {
+  background-color: #f5f5f5;
+}
+
+
+
+.aba-conteudo-tabela {
+  overflow-x: auto;
+}
+
+.aba-conteudo-tabela table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.aba-conteudo-tabela th {
+  background-color: #ff6600;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.aba-conteudo-tabela td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}

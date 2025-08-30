@@ -3,120 +3,152 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'SRCs/css/home.css' %}">
     <title>Home</title>
 </head>
 <body>
+    {% include 'SRCs/icone_user.html' %}
+    <div class="bemvindo">
+        Bem-vindo, {{ user.username }}!
+    </div>
 
-<div class="container-botoes">
+<div class="menu-container">
 
     <a href="{% url 'cadastro_user' %}">
-        <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Botão cad user" class="botao-img">
-    </a>
+    <div class="menu-item f1">
+        <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">
+    <p>Cadastro de usuário</p>
+    </div></a>
 
     <a href="{% url 'user' %}">
-        <img src="{% static 'SRCs/imagens/user.png' %}" alt="Botão edit user" class="botao-img">
-    </a>
+    <div class="menu-item f2">
+        <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">
+    <p>Editar usuário</p>
+    </div></a>
 
     <a href="{% url 'cadastro_unidade' %}">
-        <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Botão cad unidade" class="botao-img">
-    </a>
+    <div class="menu-item f3">
+        <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">
+    <p>Cadastro de unidade</p>
+    </div></a>
 
     <a href="{% url 'unidade' %}">
-        <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Botão edit unidade" class="botao-img">
-    </a>
+    <div class="menu-item f4">
+        <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">
+    <p>Editar unidade</p>
+    </div></a>
 
     <a href="{% url 'cadastro_envio' %}">
-        <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Botão cad envio" class="botao-img">
-    </a>
+    <div class="menu-item f5">
+        <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+    <p>Cadastrar envio</p>
+    </div></a>
 
     <a href="{% url 'rateio' %}">
-        <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Botão rateio" class="botao-img">
-    </a>
+    <div class="menu-item f6">
+        <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+    <p>Consultar rateio</p>
+    </div></a>
 
     <a href="{% url 'dashboard' %}">
-        <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Botão graficos" class="botao-img">
-    </a>
+    <div class="menu-item f7">
+        <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">
+    <p>Dashboard</p>
+    </div> </a>
 
     <a href="{% url 'acompanhamento' %}">
-        <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Botão status" class="botao-img">
-    </a>
+    <div class="menu-item f8">
+        <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">
+    <p>Status dos envios</p>
+    </div></a>
 
 </div>
-    <div class="bloco-tabela-fixada">
-    <div class="cabecalho-tabela">
 
-        <h1>Últimos Envios Registrados</h1>
-        </div>
-
-        <div class="container-tabela">
-
-        <table class="tabela-envios">
-            
-            <thead>
-                <tr>
-                    <th>Código de Rastreio</th>
-                    <th>Solicitante</th>
-                    <th>Conteúdo</th>
-                    <th>Remetente</th>
-                    <th>Destinatário</th>
-                    <th>Data da Postagem</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-
-
-                {% for item in dados %}
-                <tr>
-                    <td>{{ item.etiqueta }}</td>
-                    <td>{{ item.user.nome }}</td>
-                    <td>{{ item.conteudo }}</td>
-                    <td>{{ item.remetente }}</td>
-                    <td>{{ item.destinatario }}</td>
-                    <td>{{ item.data_solicitacao|date:"d/m/Y" }}</td>
-                    <td>
-                        <button type="button" class="btn-detalhar" onclick="abrirModal({{ forloop.counter0 }})">Detalhar</button>
-
-                        <div class="modal" id="modal-{{ forloop.counter0 }}">
-                            <div class="modal-content">
-                                <span class="fechar" onclick="fecharModal({{ forloop.counter0 }})">&times;</span>
-
-                                <h3>Detalhes do Envio</h3>
-                                <p><strong>Etiqueta:</strong> {{ item.etiqueta }}</p>
-                                <p><strong>Conteúdo:</strong> {{ item.conteudo }}</p>
-                                <p><strong>Motivo:</strong> {{ item.motivo }}</p>
-                                <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
-                                <p><strong>Remetente:</strong> {{ item.remetente }}</p>
-                                <p><strong>Destinatário:</strong> {{ item.destinatario }}</p>
-                                <p><strong>Usuário:</strong> {{ item.user.nome }}</p>
-                                <p><strong>Centro de Custo:</strong> {{ item.user.centro_custo }}</p>
-                                <p><strong>Data Solicitação:</strong> {{ item.data_solicitacao|date:"d/m/Y" }}</p>
-                                <p><strong>Autorização:</strong> {{ item.numero_autorizacao }}</p>
-                                
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="8">Nenhum envio encontrado</td></tr>
-                {% endfor %}
-                </tbody>
-
-           
-        </table>
-    </div>
+<div class="quadro-envios">
+  <!-- Abas -->
+    <div class="abas-superior-retangular">
+        <div class="aba-opcao" id="aba-ultimos" onclick="mostrarAba('ultimos')">Últimos Envios</div>
+        <div class="aba-opcao" id="aba-pendentes" onclick="mostrarAba('pendentes')">Pendentes</div>
     </div>
 
-    <script>
-        function abrirModal(id) {
-            document.getElementById('modal-' + id).style.display = 'block';
-        }
 
-        function fecharModal(id) {
-            document.getElementById('modal-' + id).style.display = 'none';
-        }
-        </script>
+  <!-- Conteúdo: Últimos envios -->
+  <div id="ultimos" class="aba-conteudo-tabela">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Remetente</th>
+          <th>Destinatário</th>
+          <th>Data</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for envio in ultimos_envios %}
+        <tr>
+          <td>ENV-{{ envio.id_visual }}</td>
+          <td>{{ envio.remetente }}</td>
+          <td>{{ envio.destinatario }}</td>
+          <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
+          <td>{{ envio.status }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">Nenhum envio encontrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Conteúdo: Pendentes -->
+  <div id="pendentes" class="aba-conteudo-tabela" style="display: none; max-height: 250px; overflow-y: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Destinatário</th>
+          <th>Data</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for envio in pendentes %}
+        <tr>
+          <td>ENV-{{ envio.id_visual }}</td>
+          <td>{{ envio.destinatario }}</td>
+          <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
+          <td>{{ envio.status }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">Nenhum envio pendente.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<script>
+  function mostrarAba(id) {
+    // Alternar conteúdo das abas
+    const abas = ['ultimos', 'pendentes'];
+    abas.forEach(nome => {
+      document.getElementById(nome).style.display = (nome === id) ? 'block' : 'none';
+    });
+
+    // Alterar visual das abas
+    document.getElementById('aba-ultimos').classList.toggle('ativa', id === 'ultimos');
+    document.getElementById('aba-pendentes').classList.toggle('ativa', id === 'pendentes');
+  }
+</script>
+
+
+
+    
 </body>
 </html>

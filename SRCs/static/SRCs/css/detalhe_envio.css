@@ -1,0 +1,25 @@
+.envio-box {
+    background-color: #f7f7f7;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+}
+
+.timeline {
+    list-style: none;
+    padding: 0;
+}
+
+.timeline li {
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+form label {
+    font-weight: bold;
+}
+
+form input[type="date"] {
+    padding: 5px;
+    margin-bottom: 10px;
+}

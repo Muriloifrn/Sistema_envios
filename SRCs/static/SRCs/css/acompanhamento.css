@@ -1,0 +1,29 @@
+.tabela-envios {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+
+.tabela-envios th,
+.tabela-envios td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+.tabela-envios th {
+    background-color: #f2f2f2;
+}
+
+/* Cores por status */
+.status-pendente_envio {
+    background-color: #fff3cd; /* Amarelo claro */
+}
+
+.status-aguardando_recebimento {
+    background-color: #d1ecf1; /* Azul claro */
+}
+
+.status-entregue {
+    background-color: #d4edda; /* Verde claro */
+}

@@ -1,10 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 
 class Unidade(models.Model):
     id = models.AutoField(primary_key=True)
-    cnpj = models.CharField("CNPJ", db_column='CNPJ', max_length=18, unique=True, null=True, blank=True) 
+    cnpj = models.CharField("CNPJ", db_column='CNPJ', max_length=18, unique=True, null=True, blank=True)
     excluida = models.BooleanField(default=False)
     centro_custo = models.IntegerField("CENTRO DE CUSTO")
     cep = models.CharField("CEP", max_length=10)
@@ -27,20 +26,23 @@ class Unidade(models.Model):
         verbose_name = "unidade"
         verbose_name_plural = "unidades"
 
-class Usuario(models.Model):
 
+class Usuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     ativo = models.BooleanField(default=True)
+    foto = models.ImageField(upload_to='fotos_usuarios/', blank=True, null=True)
 
+    unidade = models.ForeignKey(Unidade, on_delete=models.CASCADE, null=True, blank=True)
 
     PERFIS = [
         ('Admin', 'Admin'),
         ('Analista', 'Analista'),
-        ('Basic', 'Basic'),
+        ('Agente', 'Agente'),
         ('Supervisor', 'Supervisor'),
+        ('Cliente', 'Cliente'),
     ]
-    cartao_postagem = models.CharField("CARTÃO POSTAGEM", max_length=30)
-    perfil = models.CharField("TIPO PERFIL", max_length=10, choices=PERFIS, default='basic')
+    cartao_postagem = models.CharField("Cartão Postagem", max_length=30)
+    perfil = models.CharField("Perfil", max_length=15, choices=PERFIS, default='Cliente')
 
     def __str__(self):
         return self.user.username
@@ -56,30 +58,48 @@ class Usuario(models.Model):
             ('consultar_dashboard', 'Consultar Dashboard'),
             ('acompanhar_envio', 'Acompanhar Envio'),
         ]
+        managed = True
+        db_table = 'usuario'
+        verbose_name = "usuario"
+        verbose_name_plural = "usuarios"
+
     def atribuir_grupo(self):
         grupo_nome = self.perfil.lower()
         grupo = Group.objects.get(name=grupo_nome)
         self.user.groups.add(grupo)
 
-    def __str__(self):
-        return self.user.username
+    def foto_url(self):
+        if self.foto and self.foto.url:
+            return self.foto.url
+        return '/static/SRCs/imagens/user-icon.png'  # foto padrão
 
-    class Meta:
-        managed = True
-        db_table = 'usuario'
-        verbose_name = "usuario"
-        verbose_name_plural = "usuarios"
-    
+
 class Envio(models.Model):
+    STATUS_CHOICES = [
+        ('pendente_envio', 'Pendente de Envio'),
+        ('aguardando_recebimento', 'Aguardando Recebimento'),
+        ('entregue', 'Entregue'),
+    ]
+
     etiqueta = models.CharField("ETIQUETA", max_length=50, unique=True, primary_key=True)
-    user = models.ForeignKey('Usuario', models.DO_NOTHING, verbose_name="USUÁRIO")
-    remetente = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='remetente', verbose_name="REMETENTE")
-    destinatario = models.ForeignKey('Unidade', models.DO_NOTHING, db_column='destinatario', related_name='envio_destinatario_set', verbose_name="DESTINATÁRIO")
+    id_visual = models.IntegerField("ID Visual", unique=True, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="USUÁRIO", related_name="envios_cadastrados")
+    remetente = models.ForeignKey('Unidade', models.DO_NOTHING, verbose_name="REMETENTE")
+    destinatario = models.ForeignKey('Unidade', models.DO_NOTHING, related_name='envio_destinatario_set', verbose_name="DESTINATÁRIO")
+    usuario_destinatario = models.ForeignKey('Usuario', on_delete=models.SET_NULL, blank=True, null=True, related_name='envios_recebidos')
     numero_autorizacao = models.CharField("NÚMERO DE AUTORIZAÇÃO", max_length=20)
     data_solicitacao = models.DateField("DATA DA SOLICITAÇÃO")
-    conteudo = models.CharField(max_length=200, default='Sem conteúdo')
-    quantidade = models.IntegerField("QUANTIDADE")
-    motivo = models.CharField("MOTIVO",max_length=100)
+    motivo = models.CharField("MOTIVO", max_length=100)
+    data_postagem = models.DateField("Data da Postagem", blank=True, null=True)
+    previsao_chegada = models.DateField("Previsão de Chegada", blank=True, null=True)
+    data_chegada = models.DateField("Data de chegada", blank=True, null=True)
+    status = models.CharField("Status", max_length=30, choices=STATUS_CHOICES, default='pendente_envio')
+
+    def save(self, *args, **kwargs):
+        if not self.id_visual:
+            last_id = Envio.objects.aggregate(models.Max('id_visual'))['id_visual__max'] or 0
+            self.id_visual = last_id + 1
+        super().save(*args, **kwargs)       
 
     def __str__(self):
         return f"{self.etiqueta}"
@@ -89,6 +109,20 @@ class Envio(models.Model):
         db_table = 'envio'
         verbose_name = "envio"
         verbose_name_plural = "envios"
+
+class ItemEnvio(models.Model):
+    envio = models.ForeignKey(Envio, on_delete=models.CASCADE, related_name="itens")
+    conteudo = models.CharField("CONTEÚDO", max_length=200)
+    quantidade = models.IntegerField("QUANTIDADE")
+    valor_unitario = models.DecimalField("VALOR UNITÁRIO", max_digits=10, decimal_places=2)
+
+    def valor_total(self):
+        return self.quantidade * self.valor_unitario
+
+    def __str__(self):
+        return f"{self.conteudo} ({self.quantidade}x)"
+
+
 
 class Rateio(models.Model):
     id = models.AutoField(primary_key=True)
@@ -114,11 +148,3 @@ class Rateio(models.Model):
         db_table = 'rateio'
         verbose_name = "rateio"
         verbose_name_plural = "rateios"
-
-
-
-
-
-
-
-

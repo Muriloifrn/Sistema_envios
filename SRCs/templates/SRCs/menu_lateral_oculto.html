@@ -4,25 +4,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/menu_oculto.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
 </head>
-<body>
+<body class="{% if request.resolver_match.url_name in 'cadastro_envio user unidade' %}menu-fixo{% else %}menu-oculto{% endif %}">
+
     
     <div class="menu-toggle" onmouseover="mostrarMenu()" onmouseout="ocultarMenu()">
+        <img src="{% static 'SRCs/imagens/menu.png' %}" alt="Menu" class="icone-menu">
+</div>
+    
     
 </div>
 
 <div class="menu-lateral-oculto" id="menuLateral" onmouseover="mostrarMenu()" onmouseout="ocultarMenu()">
      <ul>
-        <li><a href="{% url 'home' %}">Menu Princiapl</a></li>
-        <li><a href="{% url 'cadastro_user' %}">Cadastrar Usuário</a></li>
-        <li><a href="{% url 'user' %}">Usuários</a></li>
-        <li><a href="{% url 'cadastro_unidade' %}">Cadastrar Unidades</a></li>
-        <li><a href="{% url 'unidade' %}">Unidades</a></li>
-        <li><a href="{% url 'cadastro_envio' %}">Cadastrar Envios</a></li>
-        <li><a href="{% url 'rateio' %}">Consultar Rateio</a></li>
+        <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/home.png' %}" alt="Home">Menu Principal
+        </a></li>
+
+        <li><a href="{% url 'cadastro_user' %}" class="{% if request.resolver_match.url_name == 'cadastro_user' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">Cadastrar usuário
+        </a></li>
+
+        <li><a href="{% url 'user' %}" class="{% if request.resolver_match.url_name == 'user' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">Usuários
+        </a></li>
+
+        <li><a href="{% url 'cadastro_unidade' %}" class="{% if request.resolver_match.url_name == 'cadastro_unidade' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">Cadastrar unidades
+        </a></li>
+
+        <li><a href="{% url 'unidade' %}" class="{% if request.resolver_match.url_name == 'unidade' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">Unidades
+        </a></li>
+
+        <li><a href="{% url 'cadastro_envio' %}" class="{% if request.resolver_match.url_name == 'cadastro_envio' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">Cadastrar envios
+        </a></li>
+
+        <li><a href="{% url 'rateio' %}" class="{% if request.resolver_match.url_name == 'rateio' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">Consultar rateio
+        </a></li>
+
+        <li><a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">Dashboard
+        </a></li>
+
+        <li><a href="{% url 'acompanhamento' %}" class="{% if request.resolver_match.url_name == 'acompanhamento' %}active{% endif %}">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">Status dos envios
+        </a></li>
     </ul>
 </div>
+
+<script>
+    const menu = document.getElementById('menuLateral');
+    const body = document.body;
+
+    // Mostrar o menu apenas se for "menu-oculto"
+    function mostrarMenu() {
+        if (body.classList.contains("menu-oculto")) {
+            menu.style.left = '0';
+        }
+    }
+
+    // Ocultar o menu apenas se for "menu-oculto"
+    function ocultarMenu() {
+        if (body.classList.contains("menu-oculto")) {
+            menu.style.left = '-220px';
+        }
+    }
+
+    // Abrir modal
+    function abrirModal(id) {
+        document.getElementById(`modal-${id}`).style.display = "block";
+    }
+
+    // Fechar modal
+    function fecharModal(id) {
+        document.getElementById(`modal-${id}`).style.display = "none";
+    }
+
+    // Fechar modal ao clicar fora
+    window.onclick = function(event) {
+        const modals = document.querySelectorAll(".modal");
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
+    // Atualizar nome do arquivo selecionado
+    function atualizarTextoArquivo() {
+        const input = document.getElementById("arquivo");
+        const span = document.getElementById("nome-arquivo");
+        span.textContent = input.files.length ? input.files[0].name : "Nenhum arquivo";
+    }
+</script>
+
 
 </body>
 </html>

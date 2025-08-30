@@ -4,72 +4,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao_forms.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
-    <title>Cadastrar envio</title>
+    <title>Cadastrar Envio</title>
+    <link rel="stylesheet" href="{% static 'SRCs/css/novo_envio.css' %}">
 </head>
 <body>
-    {% include 'SRCs/menu_lateral.html' %}
-    <h1 class="titulo">Cadastrar Envio</h1>
+    {% include 'SRCs/menu_lateral_oculto.html' %}
+    {% include 'SRCs/icone_user.html' %}
+    
+    <div class="page-container">
+        <h1>Cadastrar Envio</h1>
 
-    <div class="container-formulario">
-    <form action="{% url 'cadastro_envio' %}" method="POST">
-        {% csrf_token %}
+        <form action="{% url 'cadastro_envio' %}" method="POST" class="form-envio">
+            {% csrf_token %}
 
-        <div class="linha">
-            <div class="campo">
-                <label for="{{ form.etiqueta.id_for_label }}">Etiqueta</label>
-                {{ form.etiqueta }}
+            <!-- Dados do envio -->
+            <div class="card">
+                <h2>Dados do Envio</h2>
+                <div class="grid-2">
+                    <div class="campo">
+                        <label for="{{ form.etiqueta.id_for_label }}">Etiqueta</label>
+                        {{ form.etiqueta }}
+                    </div>
+                    <div class="campo">
+                        <label for="{{ form.numero_autorizacao.id_for_label }}">Nº Autorização</label>
+                        {{ form.numero_autorizacao }}
+                    </div>
+                    <div class="campo">
+                        <label for="{{ form.data_solicitacao.id_for_label }}">Data Solicitação</label>
+                        {{ form.data_solicitacao }}
+                    </div>
+                    <div class="campo">
+                        <label for="{{ form.remetente.id_for_label }}">Remetente</label>
+                        {{ form.remetente }}
+                    </div>
+                    <div class="campo">
+                        <label for="{{ form.destinatario.id_for_label }}">Destinatário</label>
+                        {{ form.destinatario }}
+                    </div>
+                    <div class="campo full">
+                        <label for="{{ form.motivo.id_for_label }}">Motivo</label>
+                        {{ form.motivo }}
+                    </div>
+                </div>
             </div>
-            <div class="campo">
-                <label for="{{ form.numero_autorizacao.id_for_label }}">Número de Autorização</label>
-                {{ form.numero_autorizacao }}
-            </div>
-        </div>
 
-        <div class="linha">
-            <div class="campo">
-                <label for="{{ form.conteudo.id_for_label }}">Conteúdo</label>
-                {{ form.conteudo }}
-            </div>
-            <div class="campo">
-                <label for="{{ form.quantidade.id_for_label }}">Quantidade</label>
-                {{ form.quantidade }}
-            </div>
-            <div class="campo">
-                <label for="{{ form.motivo.id_for_label }}">Motivo</label>
-                {{ form.motivo }}
-            </div>
-        </div>
+            <!-- Itens do envio -->
+            <div class="card">
+                <h2>Itens do Envio</h2>
+                {{ formset.management_form }}
 
-        <div class="linha">
-            <div class="campo">
-                <label for="{{ form.user.id_for_label }}">Usuário</label>
-                {{ form.user }}
-            </div>
-            <div class="campo">
-                <label for="{{ form.remetente.id_for_label }}">Remetente</label>
-                {{ form.remetente }}
-            </div>
-            <div class="campo">
-                <label for="{{ form.destinatario.id_for_label }}">Destinatário</label>
-                {{ form.destinatario }}
-            </div>
-        </div>
+                <div id="formset-itens">
+                    {% for item_form in formset %}
+                        <div class="item-form">
+                            <div class="campo">
+                                <label>Conteúdo</label>
+                                {{ item_form.conteudo }}
+                            </div>
+                            <div class="campo small">
+                                <label>Qtd</label>
+                                {{ item_form.quantidade }}
+                            </div>
+                            <div class="campo small">
+                                <label>Valor (R$)</label>
+                                {{ item_form.valor_unitario }}
+                            </div>
+                            <button type="button" class="remover-item">✖</button>
+                        </div>
+                    {% endfor %}
+                </div>
 
-        <div class="linha">
-            <div class="campo">
-                <label for="{{ form.data_solicitacao.id_for_label }}">Data de Solicitação</label>
-                {{ form.data_solicitacao }}
-            </div>
-        </div>
+                <!-- Template para novos itens -->
+                <div id="empty-form-template" style="display:none;">
+                    <div class="item-form">
+                        <div class="campo">
+                            <label>Conteúdo</label>
+                            {{ formset.empty_form.conteudo }}
+                        </div>
+                        <div class="campo small">
+                            <label>Qtd</label>
+                            {{ formset.empty_form.quantidade }}
+                        </div>
+                        <div class="campo small">
+                            <label>Valor (R$)</label>
+                            {{ formset.empty_form.valor_unitario }}
+                        </div>
+                        <button type="button" class="remover-item">✖</button>
+                    </div>
+                </div>
 
-        <div class="botoes">
-            <button type="button" onclick="window.location.href='{% url 'rateio' %}'">Acessar Rateio</button>
-            <button type="submit">Salvar</button>
-        </div>
-    </form>
+                <button type="button" id="add-item" class="btn-secundario">+ Adicionar Item</button>
+            </div>
+
+            <!-- Resumo e ações -->
+            <div class="resumo">
+                <p>Total Geral: <span id="total-geral">R$ 0,00</span></p>
+                <div class="botoes">
+                    <button type="button" onclick="window.location.href='{% url 'rateio' %}'" class="btn-secundario">Acessar Rateio</button>
+                    <button type="button" onclick="perguntaDeclaracao()" class="btn-principal">Salvar</button>
+                </div>
+            </div>
+        </form>
     </div>
+
+    <script src="{% static 'SRCs/js/envio.js' %}"></script>
 </body>
 </html>

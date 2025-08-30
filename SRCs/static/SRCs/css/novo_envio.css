@@ -1,0 +1,139 @@
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+
+body {
+    background: #f5f7fa;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.page-container {
+    width: 100%;
+    max-width: 900px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #003762;
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Cards */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Grid 2 colunas */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo.full { grid-column: span 2; }
+.campo.small input { max-width: 100px; }
+
+.campo label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+.campo input,
+.campo select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border 0.3s;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Itens */
+.item-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+.remover-item {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    height: 38px;
+}
+
+#add-item {
+    margin-top: 10px;
+}
+
+/* Resumo */
+.resumo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.resumo p {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+/* Botões */
+.botoes { display: flex; gap: 10px; }
+
+.btn-principal {
+    background: #3498db;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-principal:hover { background: #2980b9; }
+
+.btn-secundario {
+    background: #27ae60;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-secundario:hover { background: #1e8449; }

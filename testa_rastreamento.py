@@ -1,28 +1,50 @@
-from zeep import Client, Transport
-from requests import Session
+import requests
+from bs4 import BeautifulSoup
 
-# Sessão com cabeçalho User-Agent
-session = Session()
-session.headers.update({
-    'User-Agent': 'Mozilla/5.0'
-})
+def rastrear_correios(codigo):
+    url = f'https://www2.correios.com.br/sistemas/rastreamento/resultado.cfm'
 
-# Usa a sessão no cliente zeep
-transport = Transport(session=session)
-client = Client('https://webservice.correios.com.br/service/rastro/Rastro.wsdl', transport=transport)
+    headers = {
+        'User-Agent': 'Mozilla/5.0',
+    }
 
+    data = {
+        'objetos': codigo
+    }
 
-# Dados da API - SUBSTITUA PELOS REAIS DO CONTRATO
-usuario = 'financeiro@varejomais.com'
-senha = 'k3B81'
-codigos = 'OY280393896BR'  # Substitua por um código de rastreio real da empresa
+    response = requests.post(url, data=data, headers=headers)
 
+    if response.status_code != 200:
+        print("Erro ao acessar os Correios")
+        return []
 
-# Parâmetros
-tipo = 'L'
-resultado = 'T'
-lingua = '101'
+    soup = BeautifulSoup(response.content, 'html.parser')
+    eventos = []
 
-# Faz a consulta
-resposta = client.service.buscaEventos(usuario, senha, codigos, tipo, resultado, lingua)
-print(resposta)
+    linhas = soup.select('table.listEvent.sro > tbody > tr')
+
+    for i in range(0, len(linhas), 2):
+        status_linha = linhas[i]
+        detalhe_linha = linhas[i + 1]
+
+        data_hora_local = status_linha.select_one('td > strong').text.strip()
+        status = status_linha.select_one('td > span').text.strip()
+        local = detalhe_linha.select_one('td').text.strip()
+
+        eventos.append({
+            'data': data_hora_local,
+            'status': status,
+            'local': local
+        })
+
+    return eventos
+
+# 🔄 Teste com sua etiqueta real
+etiqueta = "OY234692805BR"
+eventos = rastrear_correios(etiqueta)
+
+for evento in eventos:
+    print("🗓 Data:", evento['data'])
+    print("📦 Status:", evento['status'])
+    print("📍 Local:", evento['local'])
+    print('-' * 40)

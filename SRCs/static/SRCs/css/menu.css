@@ -1,90 +1,94 @@
-.menu-lateral {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 300px;
-    height: 100vh;
-    background-color: #003762;
-    padding-top: 70px;
-    color: white;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.menu-lateral ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.menu-lateral li {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.menu-lateral a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    display: block;
-    padding: 10px;
-    transition: background 0.3s;
-}
-
-.menu-lateral a:hover {
-    background-color: #002748;
-    border-radius: 4px;
-}
-
-.com-conteudo {
-    margin-left: 300px;
-    padding: 20px;
-}
-
-.menu-toggle {
-    position: fixed;
-    top: 20px;
-    left: 10px;
-    font-size: 28px;
-    cursor: pointer;
-    z-index: 1001;
-    background-color: #003762;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-}
-
+/* Menu lateral */
 .menu-lateral-oculto {
     position: fixed;
     top: 0;
-    left: -220px;
     width: 220px;
     height: 100vh;
     background-color: #003762;
     color: white;
-    padding-top: 40px;
+    padding-top: 60px;
     transition: left 0.3s ease;
     z-index: 1000;
+    overflow-y: auto;
 }
 
+
+/* menu oculto por padrão */
+body.menu-oculto .menu-lateral-oculto {
+    position: fixed;
+    top: 0;
+    left: -220px;
+    width: 220px;
+    height: 100%;
+    background: #003762;
+    transition: left 0.3s;
+}
+
+/* quando passar o mouse aparece */
+body.menu-oculto .menu-lateral-oculto:hover {
+    left: 0;
+}
+
+/* menu fixo sempre visível */
+body.menu-fixo .menu-lateral-oculto {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100%;
+    background: #003762;
+}
+
+/* Botão do menu (ícone) */
+.menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    cursor: pointer;
+    z-index: 1100;
+}
+
+.menu-toggle img.icone-menu {
+    width: 40px;
+    height: auto;
+}
+
+
+/* Lista dentro do menu */
 .menu-lateral-oculto ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .menu-lateral-oculto li {
     padding: 10px 20px;
 }
 
+/* Links do menu */
 .menu-lateral-oculto a {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre ícone e texto */
     color: white;
     text-decoration: none;
-    display: block;
     padding: 10px;
+    font-size: 16px;
+    transition: background 0.3s;
 }
 
 .menu-lateral-oculto a:hover {
     background-color: #002748;
     border-radius: 4px;
+}
+
+.menu-lateral-oculto a img {
+    width: 20px;
+    height: 20px;
+}
+
+.menu-lateral-oculto a.active {
+    background-color: orange;
+    border-radius: 4px;
+    color: white;
 }

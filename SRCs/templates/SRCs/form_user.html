@@ -3,31 +3,151 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao_forms.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
-    <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/form_user.css' %}">
     <title>Cadastro de Usuário</title>
 </head>
 <body>
-    {% include 'SRCs/menu_lateral.html' %}
+    {% include 'SRCs/menu_lateral_oculto.html' %}
+    {% include 'SRCs/icone_user.html' %}
+    
     <h1>Cadastro de Usuário</h1>
-    <div class="container-formulario">
+    
+    <div class="container-form">
         <form action="{% url 'cadastro_user' %}" method="POST">
             {% csrf_token %}
-            <div class="linha">
-                {% for field in form.visible_fields %}
-                    <div class="campo">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="error">{{ field.errors }}</div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-            <input type="submit" value="Cadastrar">
-        </form>
 
+           <div class="campo">
+                <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="error">{{ form.username.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <div class="campo">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="error">{{ form.email.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+
+            <div class="campo">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                <ul id="password-requirements" style="font-size: 0.85rem; margin-top: 6px; list-style: none; padding-left: 0;">
+                    <li id="req-length" style="color: red;">❌ Pelo menos 8 caracteres</li>
+                    <li id="req-letter" style="color: red;">❌ Pelo menos 1 letra</li>
+                    <li id="req-number" style="color: red;">❌ Pelo menos 1 número</li>
+                    <li id="req-special" style="color: red;">❌ Pelo menos 1 caractere especial (@$!%*?&)</li>
+                </ul>
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+
+            <div class="campo">
+                <label for="{{ form.confirmar_senha.id_for_label }}">{{ form.confirmar_senha.label }}</label>
+                {{ form.confirmar_senha }}
+                <div id="senha-match" style="font-size: 0.85rem; margin-top: 6px; color: red; display: none;">
+                    ❌ As senhas não coincidem
+                </div>
+                {% if form.confirmar_senha.errors %}
+                    <div class="error">{{ form.confirmar_senha.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+
+            <div class="campo">
+                <label for="{{ form.perfil.id_for_label }}">{{ form.perfil.label }}</label>
+                {{ form.perfil }}
+                {% if form.perfil.errors %}
+                    <div class="error">{{ form.perfil.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="campo">
+                <label for="{{ form.cartao_postagem.id_for_label }}">{{ form.cartao_postagem.label }}</label>
+                {{ form.cartao_postagem }}
+                {% if form.cartao_postagem.errors %}
+                    <div class="error">{{ form.cartao_postagem.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button type="submit">Cadastrar</button>
+                <button type="button" id="btn-limpar">Limpar</button>
+            </div>
+        </form>
     </div>
+
+    <script>
+    const btnLimpar = document.getElementById("btn-limpar");
+    const form = document.querySelector("form");
+    const passwordInput = document.getElementById("id_password");
+    const reqLength = document.getElementById("req-length");
+    const reqLetter = document.getElementById("req-letter");
+    const reqNumber = document.getElementById("req-number");
+    const reqSpecial = document.getElementById("req-special");
+    const confirmInput = document.getElementById("id_confirmar_senha");
+    const matchMessage = document.getElementById("senha-match");
+
+    passwordInput.addEventListener("input", () => {
+        const value = passwordInput.value;
+
+        // Pelo menos 8 caracteres
+        reqLength.style.color = value.length >= 8 ? "green" : "red";
+        reqLength.textContent = value.length >= 8 ? "✔ Pelo menos 8 caracteres" : "❌ Pelo menos 8 caracteres";
+
+        // Pelo menos uma letra
+        reqLetter.style.color = /[A-Za-z]/.test(value) ? "green" : "red";
+        reqLetter.textContent = /[A-Za-z]/.test(value) ? "✔ Pelo menos 1 letra" : "❌ Pelo menos 1 letra";
+
+        // Pelo menos um número
+        reqNumber.style.color = /\d/.test(value) ? "green" : "red";
+        reqNumber.textContent = /\d/.test(value) ? "✔ Pelo menos 1 número" : "❌ Pelo menos 1 número";
+
+        // Pelo menos um caractere especial
+        reqSpecial.style.color = /[@$!%*?&]/.test(value) ? "green" : "red";
+        reqSpecial.textContent = /[@$!%*?&]/.test(value) ? "✔ Pelo menos 1 caractere especial (@$!%*?&)" : "❌ Pelo menos 1 caractere especial (@$!%*?&)";
+   
+    confirmInput.addEventListener("input", () => {
+        if (confirmInput.value === "") {
+            matchMessage.style.display = "none";
+        } else if (confirmInput.value === passwordInput.value) {
+            matchMessage.style.display = "block";
+            matchMessage.style.color = "green";
+            matchMessage.textContent = "✔ As senhas coincidem";
+        } else {
+            matchMessage.style.display = "block";
+            matchMessage.style.color = "red";
+            matchMessage.textContent = "❌ As senhas não coincidem";
+        }
+    });
+
+    btnLimpar.addEventListener("click", () => {
+        form.reset(); // reseta todos os inputs e selects
+
+        // Esconder mensagens de erro e avisos
+        const erros = document.querySelectorAll(".error");
+        erros.forEach(e => e.textContent = "");
+
+        const senhaReqs = document.querySelectorAll("#password-requirements li");
+        senhaReqs.forEach(li => {
+            li.style.color = "red";
+            li.textContent = li.textContent.replace("✔", "❌");
+        });
+
+        const matchMessage = document.getElementById("senha-match");
+        if (matchMessage) {
+            matchMessage.style.display = "none";
+        }
+    });
+
+   });
+</script>
+
 </body>
 </html>

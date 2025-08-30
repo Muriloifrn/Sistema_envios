@@ -1,7 +1,8 @@
 from django import forms 
-from .models import Unidade, Usuario, Envio
+from .models import Unidade, Usuario, Envio, ItemEnvio
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import re
  
 class formularioUnidade(forms.ModelForm):
     class Meta:
@@ -21,6 +22,7 @@ class formularioUnidade(forms.ModelForm):
 class formularioUser(forms.ModelForm):
     username = forms.CharField(label="Nome de Usuário")
     password = forms.CharField(label="Senha", widget=forms.PasswordInput)
+    confirmar_senha = forms.CharField(label="Confirmar Senha", widget=forms.PasswordInput)
     email = forms.EmailField(label="Email")
 
     class Meta:
@@ -32,6 +34,33 @@ class formularioUser(forms.ModelForm):
         if User.objects.filter(email=email).exists():
             raise ValidationError("Já existe um usuário com este email.")
         return email
+    
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("Já existe um usuário com este nome")
+        
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+
+        # Pelo menos 8 caracteres, 1 letra, 1 número e 1 caractere especial
+        regex = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+
+        if not re.match(regex, password):
+            raise ValidationError(
+                "A senha deve ter pelo menos 8 caracteres, incluindo letras, números e caracteres especiais."
+            )
+
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        senha = cleaned_data.get("password")
+        confirmar = cleaned_data.get("confirmar_senha")
+
+        if senha and confirmar and senha != confirmar:
+            raise ValidationError("As senhas não coincidem.")
+        return cleaned_data
 
     def save(self, commit=True):
         user = User.objects.create_user(
@@ -48,13 +77,14 @@ class formularioUser(forms.ModelForm):
 
         return usuario
 
+
 class FormularioEditarUsuario(forms.ModelForm):
     username = forms.CharField(label="Nome de Usuário")
     email = forms.EmailField(label="Email")
 
     class Meta:
         model = Usuario
-        fields = ['cartao_postagem', 'perfil']
+        fields = ['cartao_postagem', 'perfil', 'unidade']
 
     def __init__(self, *args, **kwargs):
         self.usuario_django = kwargs.pop('usuario_django', None)
@@ -89,12 +119,17 @@ class FormularioEditarUsuario(forms.ModelForm):
 
         return usuario
 
-
-
 class formularioEnvio(forms.ModelForm):
     class Meta:
         model = Envio
-        fields = ('etiqueta', 'user', 'remetente', 'destinatario', 'numero_autorizacao', 'data_solicitacao', 'conteudo', 'quantidade', 'motivo')
+        fields = (
+            'etiqueta',
+            'remetente',
+            'destinatario',
+            'numero_autorizacao',
+            'data_solicitacao',
+            'motivo'
+        )
         widgets = {
             'data_solicitacao': forms.DateInput(attrs={'type': 'date'}),
             'motivo': forms.Textarea(attrs={'rows': 2}),
@@ -110,13 +145,17 @@ class formularioEnvio(forms.ModelForm):
         cleaned_data = super().clean()
         remetente = cleaned_data.get('remetente')
         destinatario = cleaned_data.get('destinatario')
-
         if remetente and destinatario and remetente == destinatario:
             raise ValidationError("Remetente e destinatário não podem ser iguais.")
-    
+
 
 class UploadFaturaForm(forms.Form):
     fatura = forms.FileField(
         required=True,
         widget=forms.ClearableFileInput(attrs={'accept': '.xlsx'})
     )
+
+class formularioItemEnvio(forms.ModelForm):
+    class Meta:
+        model = ItemEnvio
+        fields = ('conteudo', 'quantidade', 'valor_unitario')

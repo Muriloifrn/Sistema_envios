@@ -1,0 +1,58 @@
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+    <link rel="stylesheet" href="{% static 'SRCs/css/detalhe_envio.css' %}">
+    <title>Detalhe Envio</title>
+</head>
+<body>
+    <h2>Detalhes do Envio ENV-{{ envio.id_visual }}</h2>
+
+    <div class="envio-box">
+        <p><strong>Status:</strong> {{ envio.get_status_display }}</p>
+        <p><strong>Remetente:</strong> {{ envio.remetente }}</p>
+        <p><strong>Destinatário:</strong> {{ envio.destinatario }}</p>
+        <p><strong>Solicitante:</strong> {{ envio.user.user.username }}</p>
+    </div>
+
+    <h3>Linha do Tempo</h3>
+    <ul class="timeline">
+        <li><strong>Data de Solicitação:</strong> {{ envio.data_solicitacao|date:"d/m/Y" }}</li>
+        <li><strong>Data da Postagem:</strong> {{ envio.data_postagem|default:"-" }}</li>
+        <li><strong>Previsão de Chegada:</strong> {{ envio.previsao_chegada|default:"-" }}</li>
+        <li><strong>Data da Chegada:</strong> {{ envio.data_chegada|default:"-" }}</li>
+    </ul>
+
+    {% if is_remetente and envio.status == 'pendente_envio' %}
+    <h3>Preencha as informações do envio</h3>
+    <form method="post">
+        {% csrf_token %}
+        <label for="data_postagem">Data da Postagem*:</label>
+        <input type="date" name="data_postagem" required><br><br>
+
+        <label for="previsao_chegada">Previsão de Chegada*:</label>
+        <input type="date" name="previsao_chegada"><br><br>
+
+        <button type="submit">Atualizar envio</button>
+    </form>
+    {% endif %}
+
+    {% if is_destinatario and envio.status == 'aguardando_recebimento' %}
+    <h3>Conformar recebimento</h3>
+    <form method="post">
+        {% csrf_token %}
+        <label for="data_chegada">Data da Chegada*:</label>
+        <input type="date" name="data_chegada" required><br><br>
+
+        <button type="submit" name="confirmar_recebimento">Confirmar Recebimento</button>
+    </form>
+
+    {% endif %}
+    {% endblock %}
+
+</body>
+</html>

@@ -17,11 +17,16 @@ urlpatterns = [
     path('home/dashboard', views.dashboard, name='dashboard'),
     path('home/exportar', views.exportar_rateio, name='exportar_rateio'),
     path('home/acompanhamento_envio', views.acompanhamento, name='acompanhamento'),
-    path('home/unidade/editar', views.editar_unidade, name='editar_unidade'),
-    path('home/unidade/excluir/<int:unidade_id>/', views.excluir_unidade, name='excluir_unidade'),
-    path('home/unidades/excluir-multiplo/', views.excluir_unidades_multiplo, name='excluir_unidades_multiplo'),
     path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
-    path('usuarios/excluir/<int:usuario_id>/', views.excluir_usuario, name='excluir_usuario'),
+    path("usuarios/excluir/", views.excluir_usuario, name="excluir_usuario"),
+    path('home/acompanhamento/detalhes/<str:etiqueta>', views.detalhe_envio, name='detalhe_envio'),
+    path('home/unidades/importar', views.importar_unidade, name='importar_unidade'),
+    path('usuarios/', views.listar_usuarios, name='listar_usuarios'),
+    path('alterar-foto/', views.alterar_foto, name='alterar_foto'),
+    path('usuarios/detalhes/<int:usuario_id>/', views.detalhes_usuario, name='detalhes_usuario'),
+    path('unidades/detalhes/<int:unidade_id>/', views.detalhes_unidade, name='detalhes_unidade'),
+    path('unidades/editar/<int:unidade_id>/', views.editar_unidade_ajax, name='editar_unidade_ajax'),
+    path('unidades/excluir/', views.excluir_unidades_ajax, name='excluir_unidades_ajax'),
 
 
 

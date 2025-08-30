@@ -1,0 +1,82 @@
+{% load static %}
+<div class="user-menu">
+    <!-- Foto do usuário (ou padrão se não tiver) -->
+    <img src="{% if request.user.usuario.foto %}{{ request.user.usuario.foto.url }}{% else %}{% static 'SRCs/imagens/user-icon.png' %}{% endif %}" 
+         alt="Usuário" class="user-icon" onclick="toggleMenu()" />
+
+    <!-- Dropdown -->
+    <div id="userDropdown" class="dropdown-content">
+        <p><strong>{{ request.user.username }}</strong></p>
+        <p>{{ request.user.email }}</p>
+        <p>Perfil: {{ request.user.groups.first.name|default:"-" }}</p>
+
+        <!-- Botão para alterar foto -->
+        <a href="{% url 'alterar_foto' %}">Alterar Foto</a>
+        <a href="{% url 'login' %}">Sair</a>
+    </div>
+</div>
+
+<style>
+.user-menu {
+    position: fixed; 
+    top: 10px;       
+    right: 10px;     
+    display: inline-block;
+}
+
+
+.user-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #ccc;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 10px;
+    z-index: 10;
+}
+
+.dropdown-content p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 8px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+</style>
+
+<script>
+function toggleMenu() {
+    document.getElementById("userDropdown").classList.toggle("show");
+}
+
+document.addEventListener("click", function(event) {
+    var menu = document.getElementById("userDropdown");
+    var icon = document.querySelector(".user-icon");
+    if (!icon.contains(event.target) && !menu.contains(event.target)) {
+        menu.classList.remove("show");
+    }
+});
+</script>
