@@ -9,9 +9,10 @@
 <body>
 
     {% include 'SRCs/menu_lateral_oculto.html' %}
+    {% include 'SRCs/icone_user.html' %}
 
     <div class="container">
-        <h1 class="titulo">📊 Rateio</h1>
+        <h1 class="titulo">Rateio</h1>
 
         {% if messages %}
             {% for message in messages %}
@@ -106,6 +107,19 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function abrirModal(id) {
+            let modal = document.getElementById("modal-" + id);
+            modal.style.display = "flex"; // centraliza porque usa flexbox
+        }
+
+        function fecharModal(id) {
+            let modal = document.getElementById("modal-" + id);
+            modal.style.display = "none";
+        }
+        </script>
+
 
 </body>
 </html>

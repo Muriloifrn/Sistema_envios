@@ -5,7 +5,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
     <link rel="stylesheet" href="{% static 'SRCs/css/detalhe_envio.css' %}">
     <title>Detalhe Envio</title>
 </head>
@@ -19,13 +18,32 @@
         <p><strong>Solicitante:</strong> {{ envio.user.user.username }}</p>
     </div>
 
-    <h3>Linha do Tempo</h3>
-    <ul class="timeline">
-        <li><strong>Data de Solicitação:</strong> {{ envio.data_solicitacao|date:"d/m/Y" }}</li>
-        <li><strong>Data da Postagem:</strong> {{ envio.data_postagem|default:"-" }}</li>
-        <li><strong>Previsão de Chegada:</strong> {{ envio.previsao_chegada|default:"-" }}</li>
-        <li><strong>Data da Chegada:</strong> {{ envio.data_chegada|default:"-" }}</li>
-    </ul>
+    <h3>Envio:</h3>
+    <div class="timeline-horizontal">
+        <div class="timeline-step completed">
+            <div class="circle"></div>
+            <p>Solicitação<br>{{ envio.data_solicitacao|date:"d/m/Y" }}</p>
+        </div>
+
+        <div class="timeline-step {% if envio.data_postagem %}completed{% endif %}">
+            <div class="circle"></div>
+            <p>Postagem<br>{{ envio.data_postagem|default:"-" }}</p>
+        </div>
+
+        <div class="timeline-step">
+            <div class="circle"></div>
+            <p>Previsão<br>{{ envio.previsao_chegada|default:"-" }}</p>
+        </div>
+
+        <div class="timeline-step {% if envio.data_chegada %}completed{% endif %}">
+            <div class="circle"></div>
+            <p>Chegada<br>{{ envio.data_chegada|default:"-" }}</p>
+        </div>
+
+        <!-- Linha de progresso -->
+        <div class="timeline-progress"></div>
+    </div>
+
 
     {% if is_remetente and envio.status == 'pendente_envio' %}
     <h3>Preencha as informações do envio</h3>

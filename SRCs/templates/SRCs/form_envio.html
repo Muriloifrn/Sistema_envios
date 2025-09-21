@@ -94,15 +94,19 @@
 
                 <button type="button" id="add-item" class="btn-secundario">+ Adicionar Item</button>
             </div>
-
+            
             <!-- Resumo e ações -->
             <div class="resumo">
                 <p>Total Geral: <span id="total-geral">R$ 0,00</span></p>
                 <div class="botoes">
                     <button type="button" onclick="window.location.href='{% url 'rateio' %}'" class="btn-secundario">Acessar Rateio</button>
-                    <button type="button" onclick="perguntaDeclaracao()" class="btn-principal">Salvar</button>
+                    <button type="button" id="btnSalvar" class="btn-principal">Salvar</button>
                 </div>
             </div>
+
+            <!-- Campo oculto para gerar PDF -->
+            <input type="hidden" name="gerar_pdf" id="gerar_pdf" value="nao">
+
         </form>
     </div>
 

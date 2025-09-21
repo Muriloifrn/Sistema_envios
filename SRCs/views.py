@@ -21,6 +21,8 @@ import pandas as pd
 from .utils import gerar_pdf_declaracao  # Corrigir nome e acentuação
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.db.models import Sum
+
 
 
 # View da página inicial
@@ -61,14 +63,19 @@ def user(request):
         usuario_id = request.POST.get('usuario_id')
         usuario = get_object_or_404(Usuario, pk=usuario_id)
 
-        # Atualiza os campos do usuário
+        # Atualiza os campos básicos do usuário
         usuario.user.first_name = request.POST.get('nome')
         usuario.user.email = request.POST.get('email')
 
         # Atualiza unidade se enviada
         unidade_id = request.POST.get('unidade')
         if unidade_id:
-            usuario.unidade_id = unidade_id
+            try:
+                usuario.unidade = Unidade.objects.get(id=unidade_id)
+            except Unidade.DoesNotExist:
+                messages.error(request, "Unidade selecionada não existe.")
+        else:
+            usuario.unidade = None
 
         usuario.user.save()
         usuario.save()
@@ -77,27 +84,36 @@ def user(request):
 
     # GET: lista os usuários
     usuarios = Usuario.objects.filter(ativo=True).select_related('user', 'unidade')
-    return render(request, 'SRCs/user.html', {'usuarios': usuarios})
+    unidades = Unidade.objects.all()  # 🔑 manda todas as unidades para o template
+
+    return render(request, 'SRCs/user.html', {
+        'usuarios': usuarios,
+        'unidades': unidades
+    })
 
 # View para cadastrar novos usuários
 @login_required
 @permission_required('SRCs.cadastrar_usuario', raise_exception=True)
 def cadastro_user(request):
     if request.method == 'POST':
-        form = formularioUser(request.POST)
+        form = formularioUser(request.POST, request.FILES)  
         if form.is_valid():
-            form.save()
-            return redirect('user') 
+            usuario = form.save(commit=False)   # cria o objeto mas não salva ainda
+            usuario.save()                      # salva o Usuario no banco
+            usuario.atribuir_grupo()            # chama seu método para garantir o Group
+            return redirect('cadastro_user') 
     else:
         form = formularioUser()
     
     return render(request, 'SRCs/form_user.html', {'form': form})
 
-
+from django.contrib import messages
 
 def importar_unidade(request):
     if request.method == 'POST' and request.FILES.get('arquivo_excel'):
         arquivo = request.FILES['arquivo_excel']
+        cnpjs_duplicados = []
+        unidades_importadas = 0  # contador de novas unidades
         try:
             # Ler o Excel
             df = pd.read_excel(arquivo)
@@ -116,51 +132,71 @@ def importar_unidade(request):
 
             # Criar as unidades
             for _, row in df.iterrows():
-                Unidade.objects.update_or_create(
-                    cnpj=row['cnpj'],
-                    defaults={
-                        'centro_custo': row['centro_custo'],
-                        'cep': row['cep'],
-                        'bairro': row['bairro'],
-                        'rua': row['rua'],
-                        'numero': row['numero'],
-                        'shopping': row['shopping'],
-                        'cidade': row['cidade'],
-                        'estado': row['estado'],
-                        'regional': row['regional'],
-                        'numero_unidade': row['numero_unidade'],
-                        'empresa': row['empresa']
-                    }
+                cnpj = str(row['cnpj']).strip()
+                if Unidade.objects.filter(cnpj=cnpj).exists():
+                    cnpjs_duplicados.append(cnpj)
+                    continue  # pula duplicados
+                Unidade.objects.create(
+                    cnpj=cnpj,
+                    centro_custo=row['centro_custo'],
+                    cep=row['cep'],
+                    bairro=row['bairro'],
+                    rua=row['rua'],
+                    numero=row['numero'],
+                    shopping=row['shopping'],
+                    cidade=row['cidade'],
+                    estado=row['estado'],
+                    regional=row['regional'],
+                    numero_unidade=row['numero_unidade'],
+                    empresa=row['empresa']
                 )
+                unidades_importadas += 1
 
-            messages.success(request, "Unidades importadas com sucesso!")
+            # Mensagens condicionais
+            if unidades_importadas > 0:
+                messages.success(request, f"{unidades_importadas} unidades importadas com sucesso!")
+
+            if cnpjs_duplicados:
+                mensagens = ", ".join(cnpjs_duplicados)
+                messages.warning(request, f"As unidades com CNPJs {mensagens} já existem e não foram importadas.")
+
         except Exception as e:
             messages.error(request, f"Erro ao importar: {e}")
 
     return redirect('cadastro_unidade')
 
-
 # View para cadastrar unidades
 @login_required
 @permission_required('SRCs.cadastrar_unidade', raise_exception=True)
 def cadastro_unidade(request):
-    id_unidade = request.GET.get('ids') or request.POST.get('id')  # <- IMPORTANTE: buscar o id no GET (GET request) ou POST (ao submeter)
+    id_unidade = request.GET.get('ids') or request.POST.get('id')  
     unidade = Unidade.objects.filter(id=id_unidade).first() if id_unidade else None
-    print('Form instância:', unidade)
 
     if request.method == 'POST':
-        form = formularioUnidade(request.POST, instance=unidade)  # <- Aqui está a chave
+        form = formularioUnidade(request.POST, instance=unidade)
+
+        # Verificação de CNPJ duplicado
+        cnpj = request.POST.get('cnpj')
+        if cnpj:
+            # Se estamos editando, ignoramos o próprio registro
+            duplicado = Unidade.objects.filter(cnpj=cnpj)
+            if unidade:
+                duplicado = duplicado.exclude(id=unidade.id)
+
+            if duplicado.exists():
+                messages.error(request, f"O CNPJ {cnpj} já está em uso.")
+                modo = 'editar' if unidade else 'cadastrar'
+                return render(request, 'SRCs/form_und.html', {'form': form, 'modo': modo})
+
         if form.is_valid():
             form.save()
-            return redirect('unidade')  # ou onde quiser redirecionar
+            messages.success(request, "Unidade cadastrada com sucesso!")
+            return redirect('cadastro_unidade')
     else:
         form = formularioUnidade(instance=unidade)
 
     modo = 'editar' if unidade else 'cadastrar'
-
     return render(request, 'SRCs/form_und.html', {'form': form, 'modo': modo})
-
-
 
 # View que lista todas as unidades
 @login_required
@@ -182,16 +218,11 @@ ItemEnvioFormSet = inlineformset_factory(
 def cadastro_envio(request):
     if request.method == 'POST':
         form = formularioEnvio(request.POST)
-        formset = ItemEnvioFormSet(request.POST)
+        formset = ItemEnvioFormSet(request.POST, prefix='form')
 
         if form.is_valid() and formset.is_valid():
             envio = form.save(commit=False)
-            
-            # ✅ se o seu User é customizado (Usuario), use isso:
-            # envio.user = request.user.usuario
-            # caso contrário, se for o padrão do Django:
-            envio.user = request.user  
-
+            envio.user = request.user
             envio.save()
 
             itens = formset.save(commit=False)
@@ -199,19 +230,19 @@ def cadastro_envio(request):
                 item.envio = envio
                 item.save()
 
-            # ✅ chama direto a função do utils
             if request.POST.get("gerar_pdf") == "sim":
                 return gerar_pdf_declaracao(envio)
 
             return redirect('home')
     else:
         form = formularioEnvio()
-        formset = ItemEnvioFormSet()
+        formset = ItemEnvioFormSet(prefix='form')
 
     return render(request, 'SRCs/form_envio.html', {
         'form': form,
         'formset': formset
     })
+
 
 # Função auxiliar para converter valores em decimal de forma segura
 def safe_decimal(valor):
@@ -406,31 +437,31 @@ def exportar_rateio(request):
     dados_completos = []
 
     for envio in envios:
-       rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
-       dados_completos.append({
-        'fatura': rateio.fatura if rateio else 'PENDENTE',
-        'solicitante': envio.user.user.get_full_name() or envio.user.user.username,
-        'motivo': envio.conteudo,
-        'cartao_postagem': envio.user.cartao_postagem,
-        'titular_cartao': rateio.titular_cartao if rateio else '',
-        'servico': rateio.servico if rateio else '',
-        'numero_autorizacao': envio.numero_autorizacao,
-        'etiqueta': envio.etiqueta,
-        'data_postagem': rateio.data_postagem if rateio else '',
-        'unidade_postagem': rateio.unidade_postagem if rateio else '',
-        'remetente': envio.remetente.shopping,
-        'destinatario': envio.destinatario.shopping,
-        'valor_declarado': rateio.valor_declarado if rateio else '',
-        'valor_unitario': rateio.valor_unitario if rateio else '',
-        'quantidade': envio.quantidade,
-        'peso': rateio.peso if rateio else '',
-        'servico_adicionais': rateio.servico_adicionais if rateio else '',
-        'valor_liquido': rateio.valor_liquido if rateio else '',
-        'desconto': rateio.desconto if rateio else '',
-        'centro_custo': envio.destinatario.centro_custo,
-        'empresa': envio.destinatario.empresa,
-       })
-       etiquetas_processadas.add(envio.etiqueta)
+        rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
+        dados_completos.append({
+            'fatura': rateio.fatura if rateio else 'PENDENTE',
+            'solicitante': envio.user.get_full_name() or envio.user.username,
+            'motivo': envio.motivo,  # <- agora é o campo correto do Envio
+            'itens': ", ".join([f"{item.conteudo} ({item.quantidade}x)" for item in envio.itens.all()]), # lista de itens
+            'cartao_postagem': getattr(envio.user, 'cartao_postagem', ''),
+            'titular_cartao': rateio.titular_cartao if rateio else '',
+            'servico': rateio.servico if rateio else '',
+            'numero_autorizacao': envio.numero_autorizacao,
+            'etiqueta': envio.etiqueta,
+            'data_postagem': rateio.data_postagem if rateio else '',
+            'unidade_postagem': rateio.unidade_postagem if rateio else '',
+            'remetente': envio.remetente.shopping,
+            'destinatario': envio.destinatario.shopping,
+            'valor_declarado': rateio.valor_declarado if rateio else '',
+            'valor_unitario': rateio.valor_unitario if rateio else '',
+            'quantidade': envio.itens.aggregate(total=Sum('quantidade'))['total'] or '',
+            'peso': rateio.peso if rateio else '',
+            'servico_adicionais': rateio.servico_adicionais if rateio else '',
+            'valor_liquido': rateio.valor_liquido if rateio else '',
+            'desconto': rateio.desconto if rateio else '',
+            'centro_custo': envio.destinatario.centro_custo,
+            'empresa': envio.destinatario.empresa,
+        })
 
     for rateio in rateios:
         if rateio.etiqueta and rateio.etiqueta.etiqueta in etiquetas_processadas:
@@ -478,23 +509,32 @@ def exportar_rateio(request):
     wb.save(response)
     return response
 
-
 # View do painel de gráficos
 @login_required
 @permission_required('SRCs.consultar_dashboard', raise_exception=True)
-
 def dashboard(request):
 
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
+    unidade_id = request.GET.get('unidade')
+    usuario_id = request.GET.get('usuario')
 
-    # Gráfico 1: Envios por mês (Rateio)
     rateios = Rateio.objects.exclude(data_postagem=None)
+    envios = Envio.objects.all()
+
+    # Aplicar filtros de data
     if data_inicio:
         rateios = rateios.filter(data_postagem__gte=data_inicio)
+        envios = envios.filter(data_solicitacao__gte=data_inicio)
     if data_fim:
         rateios = rateios.filter(data_postagem__lte=data_fim)
+        envios = envios.filter(data_solicitacao__lte=data_fim)
+    if unidade_id:
+        envios = envios.filter(remetente_id=unidade_id)  # ou destinatario_id
+    if usuario_id:
+        envios = envios.filter(user_id=usuario_id)
 
+    # ===== Gráfico 1: Quantidade de envios por mês =====
     dados = (
         rateios
         .annotate(mes=TruncMonth('data_postagem'))
@@ -502,24 +542,15 @@ def dashboard(request):
         .annotate(qtd=Count('id'))
         .order_by('mes')
     )
-
     labels = [f"{item['mes'].strftime('%b/%Y')}" for item in dados]
     valores = [item['qtd'] for item in dados]
 
-    # Inicializa contexto
     context = {
         'labels': json.dumps(labels),
         'valores': json.dumps(valores),
     }
 
-    # Filtro aplicado ao Envio também
-    envios = Envio.objects.all()
-    if data_inicio:
-        envios = envios.filter(data_solicitacao__gte=data_inicio)
-    if data_fim:
-        envios = envios.filter(data_solicitacao__lte=data_fim)
-
-    # Gráfico 2: Envios por unidade remetente
+    # ===== Gráfico 2: Envios por unidade remetente =====
     envios_por_remetente = (
         envios
         .values('remetente__shopping')
@@ -531,7 +562,7 @@ def dashboard(request):
     context['remetentes'] = json.dumps(remetentes)
     context['qtd_envios'] = json.dumps(envios_qtd)
 
-    # Gráfico 3: Envios por unidade destinatária
+    # ===== Gráfico 3: Envios por unidade destinatária =====
     envios_por_destinatario = (
         envios
         .values('destinatario__shopping')
@@ -543,7 +574,7 @@ def dashboard(request):
     context['destinatarios'] = json.dumps(destinatarios)
     context['qtd_destinatarios'] = json.dumps(destinatarios_qtd)
 
-    # Gráfico 4: Gastos por unidade destinatária
+    # ===== Gráfico 4: Gastos por unidade destinatária =====
     gastos_por_destinatario = (
         rateios
         .filter(etiqueta__destinatario__isnull=False)
@@ -551,27 +582,26 @@ def dashboard(request):
         .annotate(total_gasto=Sum('valor_liquido'))
         .order_by('-total_gasto')
     )
-
     unidades_destino = [item.get('etiqueta__destinatario__shopping') or 'Não informado' for item in gastos_por_destinatario]
     valores_gastos = [float(item.get('total_gasto') or 0) for item in gastos_por_destinatario]
-
     context['unidades_destino'] = json.dumps(unidades_destino)
     context['valores_gastos'] = json.dumps(valores_gastos)
-    
-    # Gráfico 5: Quantidade de envios por usuário
+
+    # ===== Gráfico 5: Quantidade de envios por usuário =====
     envios_por_usuario = (
         envios
         .values('user__username')
         .annotate(total=Count('etiqueta'))
         .order_by('-total')
     )
-
     usuarios = [item.get('user__username') or 'Desconhecido' for item in envios_por_usuario]
     qtd_envios_usuario = [item.get('total') for item in envios_por_usuario]
+    context['usuarios'] = json.dumps(usuarios)                # <=== faltava
+    context['qtd_envios_usuario'] = json.dumps(qtd_envios_usuario)  # <=== faltava
 
-    context['usuarios'] = json.dumps(usuarios)
-    context['qtd_envios_usuario'] = json.dumps(qtd_envios_usuario)
-
+    # ===== Listas para filtros =====
+    context['unidades'] = Unidade.objects.all().order_by('shopping')
+    context['usuarios_todos'] = Usuario.objects.select_related('user').all().order_by('user__username')
 
     return render(request, 'SRCs/graficos.html', context)
 
@@ -656,6 +686,15 @@ def editar_unidade_ajax(request, unidade_id):
         unidade.shopping = request.POST.get('shopping')
         unidade.cnpj = request.POST.get('cnpj')
         unidade.empresa = request.POST.get('empresa')
+        unidade.centro_custo = request.POST.get('centro_custo')
+        unidade.rua = request.POST.get('rua')
+        unidade.bairro = request.POST.get('bairro')
+        unidade.cep = request.POST.get('cep')
+        unidade.numero = request.POST.get('numero')
+        unidade.numero_unidade = request.POST.get('numero_unidade')
+        unidade.regional = request.POST.get('regional')
+        unidade.cidade = request.POST.get('cidade')
+        unidade.estado = request.POST.get('estado')
         unidade.save()
         return JsonResponse({'message': 'Unidade editada com sucesso!'})
     return JsonResponse({'message': 'Método não permitido'}, status=405)
@@ -663,10 +702,20 @@ def editar_unidade_ajax(request, unidade_id):
 def detalhes_unidade(request, unidade_id):
     unidade = get_object_or_404(Unidade, id=unidade_id)
     data = {
-        'id': unidade.id,
-        'shopping': unidade.shopping,
-        'cnpj': unidade.cnpj,
-        'empresa': unidade.empresa
+        "id": unidade.id,
+        "shopping": unidade.shopping,
+        "cnpj": unidade.cnpj,
+        "empresa": unidade.empresa,
+        "centro_custo": unidade.centro_custo,
+        "rua": unidade.rua,
+        "bairro": unidade.bairro,
+        "cep": unidade.cep,
+        "numero": unidade.numero,
+        "numero_unidade": unidade.numero_unidade,
+        "regional": unidade.regional,
+        "cidade": unidade.cidade,
+        "estado": unidade.estado,
+
     }
     return JsonResponse(data)
 
@@ -685,29 +734,48 @@ def excluir_unidades_ajax(request):
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Método não permitido."}, status=405)
 
-
 @csrf_exempt
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        perfil = request.POST.get('perfil')
-        cartao_postagem = request.POST.get('cartao_postagem')
+    if request.method != 'POST':
+        return JsonResponse({"error": "Método não permitido."}, status=405)
 
-        usuario.user.username = username
-        usuario.user.email = email
-        if password:
-            usuario.user.set_password(password)
-        usuario.user.save()
+    username = request.POST.get('username')
+    email = request.POST.get('email')
+    password = request.POST.get('password')
+    perfil = request.POST.get('perfil')
+    cartao_postagem = request.POST.get('cartao_postagem')
+    unidade_id = request.POST.get('unidade')
 
-        usuario.perfil = perfil
-        usuario.cartao_postagem = cartao_postagem
-        usuario.save()
+    # Valida duplicidade
+    if Usuario.objects.filter(user__username=username).exclude(id=usuario.id).exists():
+        return JsonResponse({"error": "Username já está em uso."}, status=400)
+    if Usuario.objects.filter(user__email=email).exclude(id=usuario.id).exists():
+        return JsonResponse({"error": "Email já está em uso."}, status=400)
 
-        return JsonResponse({'message': 'Usuário atualizado com sucesso!'})
+    # Atualiza dados do User
+    usuario.user.username = username
+    usuario.user.email = email
+    if password:
+        usuario.user.set_password(password)
+    usuario.user.save()
+
+    # Atualiza dados do Usuario
+    usuario.perfil = perfil
+    usuario.cartao_postagem = cartao_postagem
+
+    # Atualiza unidade vinculada
+    if unidade_id:
+        try:
+            usuario.unidade = Unidade.objects.get(id=unidade_id)
+        except Unidade.DoesNotExist:
+            return JsonResponse({"error": "Unidade não encontrada."}, status=400)
+    else:
+        usuario.unidade = None
+
+    usuario.save()
+    return JsonResponse({'message': 'Usuário atualizado com sucesso!'})
 
 @csrf_exempt
 def excluir_usuario(request):
@@ -719,9 +787,28 @@ def excluir_usuario(request):
             if not ids:
                 return JsonResponse({"error": "Nenhum usuário selecionado."}, status=400)
 
-            Usuario.objects.filter(id__in=ids).delete()
+            usuarios = Usuario.objects.filter(id__in=ids)
 
-            return JsonResponse({"message": "Usuário(s) excluído(s) com sucesso!"})
+            for usuario in usuarios:
+                user = usuario.user
+                if user:
+                    # Desativa o usuário
+                    user.is_active = False
+
+                    # Adiciona sufixo se ainda não existir
+                    sufixo = "(excluido)"
+                    if not user.username.endswith(sufixo):
+                        user.username = f"{user.username}{sufixo}"
+                    if not user.email.endswith(sufixo):
+                        user.email = f"{user.email}{sufixo}"
+
+                    user.save()
+
+                # Marca como inativo no seu modelo
+                usuario.ativo = False
+                usuario.save()
+
+            return JsonResponse({"message": "Usuário(s) desativado(s) com sucesso!"})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
@@ -731,6 +818,14 @@ def listar_usuarios(request):
     usuarios = Usuario.objects.filter(ativo=True).select_related('user', 'unidade')  # Evita N+1 queries
     return render(request, 'SRCs/listar_usuarios.html', {'usuarios': usuarios})
 
+def listar_unidades(request):
+    unidades = Unidade.objects.filter(excluida=False) 
+    data = [
+        {"id": u.id, "nome": u.shopping}
+        for u in unidades
+    ]
+    return JsonResponse(data, safe=False)
+
 def detalhes_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return JsonResponse({
@@ -739,6 +834,8 @@ def detalhes_usuario(request, usuario_id):
         'email': usuario.user.email,
         'perfil': usuario.perfil,
         'cartao_postagem': usuario.cartao_postagem,
+        'unidade': usuario.unidade.id if usuario.unidade else '',  
+        'unidade_nome': usuario.unidade.shopping if usuario.unidade else '',  
     })
 
 def alterar_foto(request):

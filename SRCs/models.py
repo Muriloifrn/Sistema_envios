@@ -64,9 +64,10 @@ class Usuario(models.Model):
         verbose_name_plural = "usuarios"
 
     def atribuir_grupo(self):
-        grupo_nome = self.perfil.lower()
-        grupo = Group.objects.get(name=grupo_nome)
+        grupo_nome = self.perfil  # usa o valor exato do choices
+        grupo, created = Group.objects.get_or_create(name=grupo_nome)
         self.user.groups.add(grupo)
+
 
     def foto_url(self):
         if self.foto and self.foto.url:

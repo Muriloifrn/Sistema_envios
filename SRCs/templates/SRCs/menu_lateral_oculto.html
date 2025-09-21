@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'SRCs/css/menu.css' %}">
 </head>
-<body class="{% if request.resolver_match.url_name in 'cadastro_envio user unidade' %}menu-fixo{% else %}menu-oculto{% endif %}">
+<body class="{% if request.resolver_match.url_name in 'cadastro_envio user unidade cadastro_unidade rateio cadastro_user' %}menu-fixo{% else %}menu-oculto{% endif %}">
 
     
     <div class="menu-toggle" onmouseover="mostrarMenu()" onmouseout="ocultarMenu()">
-        <img src="{% static 'SRCs/imagens/menu.png' %}" alt="Menu" class="icone-menu">
+        <img src="{% static 'SRCs/imagens/menu-icon.png' %}" alt="Menu" class="icone-menu">
 </div>
     
     

@@ -2,52 +2,76 @@
 {% block content %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/padrao.css' %}">
+
     <link rel="stylesheet" href="{% static 'SRCs/css/acompanhamento.css' %}">
     <title>Acompanhamento</title>
 </head>
 <body>
-    <h1>Acompanhamento de Envios</h1>
+    {% include 'SRCs/menu_lateral_oculto.html' %}
+    {% include 'SRCs/icone_user.html' %}
 
-    <table class="tabela-envios">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Situação</th>
-                <th>Remetente</th>
-                <th>Destinatario</th>
-                <th>Solicitante</th>
-                <th>Data da Solicitação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {%for envio in envios %}
-            <tr class="status-{{ envio.status }}">
-                <td> 
-                    <a href="{% url 'detalhe_envio' envio.etiqueta %}">
-                        ENV-{{ envio.id_visual }}
-                    </a> 
-                </td>
-                <td>{{ envio.get.status_display }}</td>
-                <td>{{ envio.remetente }}</td>
-                <td>{{ envio.destinatario }}</td>
-                <td>{{ envio.user.user.username }}</td>
-                <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">Nenhum envio encontrado</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- ===== Filtro por Status ===== -->
+    <div class="topo-pagina">
+        <h1>Acompanhamento de Envios</h1>
 
-    {% endblock %}
+        <div class="filtro-status">
+            <label for="statusFilter">Filtrar:</label>
+            <select id="statusFilter">
+                <option value="todos">Todos</option>
+                <option value="pendente_envio">Pendente de Envio</option>
+                <option value="aguardando_recebimento">Aguardando Recebimento</option>
+                <option value="entregue">Entregue</option>
+            </select>
+        </div>
+    </div>
 
+
+    <div class="lista-envios">
+        {% for envio in envios %}
+        <div class="card-envio status-{{ envio.status }}">
+            <div class="card-header">
+                <a href="{% url 'detalhe_envio' envio.etiqueta %}">
+                    ENV-{{ envio.id_visual }}
+                </a>
+                <span class="status">{{ envio.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Remetente:</strong> {{ envio.remetente }}</p>
+                <p><strong>Destinatário:</strong> {{ envio.destinatario }}</p>
+                <p><strong>Solicitante:</strong> {{ envio.user.user.username }}</p>
+                <p><strong>Data da Solicitação:</strong> {{ envio.data_solicitacao|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p class="nenhum-envio">Nenhum envio encontrado</p>
+        {% endfor %}
+    </div>
+
+    <!-- ===== Script do filtro ===== -->
+    <script>
+        document.getElementById("statusFilter").addEventListener("change", function() {
+            let filtro = this.value;
+            let cards = document.querySelectorAll(".card-envio");
+
+            cards.forEach(card => {
+                if (filtro === "todos") {
+                    card.style.display = "flex";
+                } else {
+                    if (card.classList.contains("status-" + filtro)) {
+                        card.style.display = "flex";
+                    } else {
+                        card.style.display = "none";
+                    }
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
+
+{% endblock %}

@@ -44,14 +44,72 @@
         <!-- Formulário de importação invisível -->
         <form id="formImportar" action="{% url 'importar_unidade' %}" method="POST" enctype="multipart/form-data" style="display: none;">
             {% csrf_token %}
-            <input type="file" id="arquivo_excel" name="arquivo_excel" accept=".xlsx,.xls" onchange="document.getElementById('formImportar').submit()">
+            <input type="file" id="arquivo_excel" name="arquivo_excel" accept=".xlsx,.xls">
         </form>
 
     </div>
 
+    <div id="modalMensagem" class="modal-mensagem">
+        <div class="modal-content">
+            <p id="textoMensagem"></p>
+            <button id="btnOkMensagem" class="btn-ok">OK</button>
+        </div>
+    </div>
+
+
+    <div id="modalConfirmacao" class="modal" style="display:none;">
+        <div class="modal-content">
+            <p id="mensagemModal"></p>
+            <div class="botoes">
+            <button id="btnConfirmar" class="btn-sim">Sim</button>
+            <button id="btnCancelar" class="btn-nao">Não</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+    const inputArquivo = document.getElementById('arquivo_excel');
+    const modal = document.getElementById('modalConfirmacao');
+    const mensagemModal = document.getElementById('mensagemModal');
+    const btnConfirmar = document.getElementById('btnConfirmar');
+    const btnCancelar = document.getElementById('btnCancelar');
+    const modalMensagem = document.getElementById('modalMensagem');
+    const textoMensagem = document.getElementById('textoMensagem');
+    const btnOkMensagem = document.getElementById('btnOkMensagem');
+
     document.getElementById('btnImportar').addEventListener('click', function() {
-        document.getElementById('arquivo_excel').click();
+        inputArquivo.click();
+    });
+
+    inputArquivo.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const nomeArquivo = this.files[0].name;
+            mensagemModal.textContent = `Deseja importar "${nomeArquivo}"?`;
+            modal.style.display = 'flex';
+        }
+    });
+
+    btnConfirmar.addEventListener('click', function() {
+        modal.style.display = 'none';
+        document.getElementById('formImportar').submit();
+    });
+
+    btnCancelar.addEventListener('click', function() {
+        modal.style.display = 'none';
+        inputArquivo.value = ""; // limpa o input se cancelar
+    });
+
+    // Passa as mensagens do Django para o modal
+    {% if messages %}
+        {% for message in messages %}
+            textoMensagem.textContent = "{{ message|escapejs }}";
+            modalMensagem.style.display = 'flex';
+        {% endfor %}
+    {% endif %}
+
+    // Fecha o modal ao clicar no OK
+    btnOkMensagem.addEventListener('click', function() {
+        modalMensagem.style.display = 'none';
     });
     </script>
 

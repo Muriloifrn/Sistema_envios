@@ -1,29 +1,164 @@
-.tabela-envios {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
+/* ===== Reset ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
-.tabela-envios th,
-.tabela-envios td {
-    padding: 10px;
-    border: 1px solid #ccc;
-    text-align: left;
+body {
+    background: #f4f6f9;
+    color: #333;
+    padding: 20px;
 }
 
-.tabela-envios th {
-    background-color: #f2f2f2;
+/* ===== Título ===== */
+h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    color: #2c3e50;
 }
 
-/* Cores por status */
+/* ===== Lista de envios ===== */
+.lista-envios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* ===== Card ===== */
+.card-envio {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-envio:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+/* ===== Cabeçalho do card ===== */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.card-header a {
+    color: #3498db;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 1.05rem;
+}
+
+.card-header a:hover {
+    color: #1abc9c;
+}
+
+.card-header .status {
+    font-size: 0.9rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* ===== Corpo do card ===== */
+.card-body p {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+/* ===== Cores por status ===== */
 .status-pendente_envio {
-    background-color: #fff3cd; /* Amarelo claro */
+    border-left: 6px solid #f1c40f;
+}
+.status-pendente_envio .status {
+    background: #fff8e1;
+    color: #c27c0e;
 }
 
 .status-aguardando_recebimento {
-    background-color: #d1ecf1; /* Azul claro */
+    border-left: 6px solid #3498db;
+}
+.status-aguardando_recebimento .status {
+    background: #e3f2fd;
+    color: #1565c0;
 }
 
 .status-entregue {
-    background-color: #d4edda; /* Verde claro */
+    border-left: 6px solid #2ecc71;
+}
+.status-entregue .status {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+/* ===== Nenhum envio ===== */
+.nenhum-envio {
+    text-align: center;
+    grid-column: 1 / -1;
+    font-style: italic;
+    color: #777;
+}
+
+/* ===== Topo com título e filtro ===== */
+.topo-pagina {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    margin-top: 40px;
+}
+
+
+.topo-pagina h1 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+
+.filtro-status {
+    background: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filtro-status label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.filtro-status select {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.filtro-status select:hover {
+    border-color: #3498db;
+    background: #eef6fc;
+}
+
+.filtro-status select:focus {
+    outline: none;
+    border-color: #1abc9c;
+    box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
 }

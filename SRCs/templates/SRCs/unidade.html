@@ -64,6 +64,33 @@
             <label>Empresa:</label>
             <input type="text" name="empresa" id="empresa" required>
 
+            <label>Centro de custo</label>
+            <input type="text" name="centro_custo" id="centro_custo" required>
+
+            <label>Rua</label>
+            <input type="text" name="rua" id="rua" required>
+
+            <label>Bairro</label>
+            <input type="text" name="bairro" id="bairro" required>
+
+            <label>CEP</label>
+            <input type="text" name="cep" id="cep" required>
+
+            <label>Número</label>
+            <input type="text" name="numero" id="numero" required>
+
+            <label>Número da unidade</label>
+            <input type="text" name="numero_unidade" id="numero_unidade" required>
+
+            <label>Regional</label>
+            <input type="text" name="regional" id="regional" required>
+
+            <label>Cidade</label>
+            <input type="text" name="cidade" id="cidade" required>
+
+            <label>Estado</label>
+            <input type="text" name="estado" id="estado" required>
+
             <button type="submit" class="btn salvar">Salvar</button>
         </form>
     </div>
@@ -115,6 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('shopping').value = data.shopping;
                 document.getElementById('cnpj').value = data.cnpj;
                 document.getElementById('empresa').value = data.empresa;
+                document.getElementById('centro_custo').value = data.centro_custo;
+                document.getElementById('rua').value = data.rua;
+                document.getElementById('bairro').value = data.bairro;
+                document.getElementById('cep').value = data.cep;
+                document.getElementById('numero').value = data.numero;
+                document.getElementById('numero_unidade').value = data.numero_unidade;
+                document.getElementById('regional').value = data.regional;
+                document.getElementById('cidade').value = data.cidade;
+                document.getElementById('estado').value = data.estado;
+
                 modal.style.display = 'flex';
             });
     });

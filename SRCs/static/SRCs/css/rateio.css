@@ -1,174 +1,193 @@
-/* ======== Estilo geral ======== */
+/* ===== Reset básico ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* ===== Corpo ===== */
 body {
-    background-image: url('../imagens/Fundo-home.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 100vh;
-    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
+    background: #f5f7fa;
+    color: #333;
+    padding: 20px;
+}
+
+/* ===== Container principal ===== */
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    margin-top: 40px;
+}
+
+/* ===== Títulos ===== */
+.titulo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
     color: #333;
 }
 
-/* ======== Container ======== */
-.container {
-    width: 100%;
-    max-width: 1100px;
-}
-
-/* ======== Títulos ======== */
-.titulo {
-    font-size: 1.8rem;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 25px;
-}
-
 .subtitulo {
-    font-size: 1.2rem;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #1976d2;
+}
+
+/* ===== Alertas ===== */
+.alert {
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 14px;
     margin-bottom: 15px;
-    color: #444;
 }
+.alert-success { background: #e6f7ed; color: #0f5132; border-left: 4px solid #198754; }
+.alert-error { background: #fde2e1; color: #842029; border-left: 4px solid #dc3545; }
 
-/* ======== Quadro de ações ======== */
+/* ===== Quadro de Ações ===== */
 .quadro-acoes {
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-/* Botões */
-.btn {
-    padding: 10px 16px;
-    border: none;
+    justify-content: space-between; 
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
     border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    background: #3498db;
-    color: #fff;
-    transition: 0.3s;
-    text-decoration: none;
-    font-size: 0.95rem;
+    border: 1px solid #ddd;
 }
 
+/* Lado esquerdo (form) */
+.form-upload {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px; 
+}
+
+/* Lado direito (exportar) */
+.quadro-acoes .exportar {
+    align-self: flex-start;
+}
+
+/* ===== Botões ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    background: #1976d2;
+    color: white;
+    transition: 0.3s;
+}
 .btn:hover {
-    background: #2980b9;
-    transform: scale(1.05);
+    background: #1565c0;
 }
 
 .btn.exportar {
-    background: #2ecc71;
+    background: #16a34a;
 }
-
 .btn.exportar:hover {
-    background: #27ae60;
+    background: #15803d;
 }
 
 .btn.detalhar {
-    padding: 6px 12px;
-    font-size: 0.85rem;
+    background: #eab308;
+    color: #1a1a1a;
+}
+.btn.detalhar:hover {
+    background: #ca8a04;
 }
 
-/* Nome do arquivo */
-.nome-arquivo {
-    font-size: 0.9rem;
-    color: #555;
-    margin-left: 8px;
-}
-
-/* ======== Quadro tabela ======== */
+/* ===== Quadro da Tabela ===== */
 .quadro-envios {
     background: #fff;
-    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.tabela-container {
-    overflow-x: auto;
-    max-height: 70vh;
     border-radius: 8px;
     border: 1px solid #ddd;
+}
+
+/* ===== Tabela ===== */
+.tabela-container {
+    overflow-x: auto;
+    border-radius: 6px;
 }
 
 .tabela-rateio {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    background: #fff;
+    font-size: 14px;
 }
 
 .tabela-rateio thead th {
-    background: #ff6600;
-    color: #fff;
-    font-weight: bold;
-    padding: 12px;
     text-align: left;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+    padding: 12px 10px;
+    border-bottom: 2px solid #ddd;
+    font-weight: bold;
+    background: #f0f0f0;
 }
 
-.tabela-rateio tbody td {
+.tabela-rateio td {
     padding: 10px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #ddd;
 }
 
-.tabela-rateio tbody tr:hover {
+.tabela-rateio tr:hover {
     background: #fafafa;
 }
 
-/* ======== Modal ======== */
+/* ===== Modal ===== */
 .modal {
     display: none;
     position: fixed;
     z-index: 9999;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
     justify-content: center;
     align-items: center;
-    padding: 20px;
 }
 
 .modal-content {
     background: #fff;
-    padding: 20px;
+    width: 400px;
+    max-width: 95%;
     border-radius: 10px;
-    width: 500px;
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
 .modal-content h3 {
     margin-bottom: 12px;
-    color: #2c3e50;
+    color: #1976d2;
+    font-weight: bold;
 }
 
-.modal-content .detalhes p {
+.detalhes p {
     margin: 6px 0;
-    font-size: 0.9rem;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 4px;
 }
 
 .close {
     position: absolute;
+    right: 15px;
     top: 12px;
-    right: 20px;
-    font-size: 22px;
+    font-size: 20px;
     cursor: pointer;
-    color: #333;
+    color: #888;
+    transition: 0.2s;
 }
-
 .close:hover {
-    color: red;
+    color: #000;
 }

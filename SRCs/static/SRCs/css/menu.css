@@ -1,4 +1,6 @@
-/* Menu lateral */
+/* ===== MENU LATERAL ===== */
+
+/* Menu lateral fixo ou oculto */
 .menu-lateral-oculto {
     position: fixed;
     top: 0;
@@ -12,47 +14,20 @@
     overflow-y: auto;
 }
 
-
-/* menu oculto por padrão */
+/* Menu oculto por padrão */
 body.menu-oculto .menu-lateral-oculto {
-    position: fixed;
-    top: 0;
     left: -220px;
-    width: 220px;
-    height: 100%;
-    background: #003762;
-    transition: left 0.3s;
 }
 
-/* quando passar o mouse aparece */
+/* Menu oculto aparece ao passar o mouse */
 body.menu-oculto .menu-lateral-oculto:hover {
     left: 0;
 }
 
-/* menu fixo sempre visível */
+/* Menu fixo sempre visível */
 body.menu-fixo .menu-lateral-oculto {
-    position: fixed;
-    top: 0;
     left: 0;
-    width: 220px;
-    height: 100%;
-    background: #003762;
 }
-
-/* Botão do menu (ícone) */
-.menu-toggle {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    cursor: pointer;
-    z-index: 1100;
-}
-
-.menu-toggle img.icone-menu {
-    width: 40px;
-    height: auto;
-}
-
 
 /* Lista dentro do menu */
 .menu-lateral-oculto ul {
@@ -91,4 +66,18 @@ body.menu-fixo .menu-lateral-oculto {
     background-color: orange;
     border-radius: 4px;
     color: white;
+}
+
+/* ===== BOTÃO DO MENU (TOGGLE) ===== */
+.menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    cursor: pointer;
+    z-index: 1100;
+}
+
+.menu-toggle img.icone-menu {
+    width: 40px;
+    height: auto;
 }

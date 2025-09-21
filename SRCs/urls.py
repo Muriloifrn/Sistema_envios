@@ -27,6 +27,8 @@ urlpatterns = [
     path('unidades/detalhes/<int:unidade_id>/', views.detalhes_unidade, name='detalhes_unidade'),
     path('unidades/editar/<int:unidade_id>/', views.editar_unidade_ajax, name='editar_unidade_ajax'),
     path('unidades/excluir/', views.excluir_unidades_ajax, name='excluir_unidades_ajax'),
+    path('unidades/listar/', views.listar_unidades, name='listar_unidades'),
+
 
 
 

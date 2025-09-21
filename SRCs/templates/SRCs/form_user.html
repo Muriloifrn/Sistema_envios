@@ -16,7 +16,7 @@
         <form action="{% url 'cadastro_user' %}" method="POST">
             {% csrf_token %}
 
-           <div class="campo">
+            <div class="campo">
                 <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
                 {{ form.username }}
                 {% if form.username.errors %}
@@ -32,7 +32,6 @@
                 {% endif %}
             </div>
 
-
             <div class="campo">
                 <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
                 {{ form.password }}
@@ -47,7 +46,6 @@
                 {% endif %}
             </div>
 
-
             <div class="campo">
                 <label for="{{ form.confirmar_senha.id_for_label }}">{{ form.confirmar_senha.label }}</label>
                 {{ form.confirmar_senha }}
@@ -58,7 +56,6 @@
                     <div class="error">{{ form.confirmar_senha.errors|striptags }}</div>
                 {% endif %}
             </div>
-
 
             <div class="campo">
                 <label for="{{ form.perfil.id_for_label }}">{{ form.perfil.label }}</label>
@@ -76,6 +73,14 @@
                 {% endif %}
             </div>
 
+            <div class="campo">
+                <label for="{{ form.unidade.id_for_label }}">{{ form.unidade.label }}</label>
+                {{ form.unidade }}
+                {% if form.unidade.errors %}
+                    <div class="error">{{ form.unidade.errors }}</div>
+                {% endif %}
+            </div>
+
             <div style="margin-top: 20px; text-align: center;">
                 <button type="submit">Cadastrar</button>
                 <button type="button" id="btn-limpar">Limpar</button>
@@ -87,32 +92,31 @@
     const btnLimpar = document.getElementById("btn-limpar");
     const form = document.querySelector("form");
     const passwordInput = document.getElementById("id_password");
+    const confirmInput = document.getElementById("id_confirmar_senha");
     const reqLength = document.getElementById("req-length");
     const reqLetter = document.getElementById("req-letter");
     const reqNumber = document.getElementById("req-number");
     const reqSpecial = document.getElementById("req-special");
-    const confirmInput = document.getElementById("id_confirmar_senha");
     const matchMessage = document.getElementById("senha-match");
 
+    // Validação da senha
     passwordInput.addEventListener("input", () => {
         const value = passwordInput.value;
 
-        // Pelo menos 8 caracteres
         reqLength.style.color = value.length >= 8 ? "green" : "red";
         reqLength.textContent = value.length >= 8 ? "✔ Pelo menos 8 caracteres" : "❌ Pelo menos 8 caracteres";
 
-        // Pelo menos uma letra
         reqLetter.style.color = /[A-Za-z]/.test(value) ? "green" : "red";
         reqLetter.textContent = /[A-Za-z]/.test(value) ? "✔ Pelo menos 1 letra" : "❌ Pelo menos 1 letra";
 
-        // Pelo menos um número
         reqNumber.style.color = /\d/.test(value) ? "green" : "red";
         reqNumber.textContent = /\d/.test(value) ? "✔ Pelo menos 1 número" : "❌ Pelo menos 1 número";
 
-        // Pelo menos um caractere especial
         reqSpecial.style.color = /[@$!%*?&]/.test(value) ? "green" : "red";
         reqSpecial.textContent = /[@$!%*?&]/.test(value) ? "✔ Pelo menos 1 caractere especial (@$!%*?&)" : "❌ Pelo menos 1 caractere especial (@$!%*?&)";
-   
+    });
+
+    // Confirmação de senha
     confirmInput.addEventListener("input", () => {
         if (confirmInput.value === "") {
             matchMessage.style.display = "none";
@@ -127,27 +131,29 @@
         }
     });
 
+    // Botão Limpar
     btnLimpar.addEventListener("click", () => {
-        form.reset(); // reseta todos os inputs e selects
+        form.reset();
 
-        // Esconder mensagens de erro e avisos
-        const erros = document.querySelectorAll(".error");
-        erros.forEach(e => e.textContent = "");
+        // Reset mensagens de erro
+        document.querySelectorAll(".error").forEach(e => e.textContent = "");
 
-        const senhaReqs = document.querySelectorAll("#password-requirements li");
-        senhaReqs.forEach(li => {
-            li.style.color = "red";
-            li.textContent = li.textContent.replace("✔", "❌");
-        });
+        // Reset requisitos de senha
+        reqLength.style.color = "red";
+        reqLength.textContent = "❌ Pelo menos 8 caracteres";
 
-        const matchMessage = document.getElementById("senha-match");
-        if (matchMessage) {
-            matchMessage.style.display = "none";
-        }
+        reqLetter.style.color = "red";
+        reqLetter.textContent = "❌ Pelo menos 1 letra";
+
+        reqNumber.style.color = "red";
+        reqNumber.textContent = "❌ Pelo menos 1 número";
+
+        reqSpecial.style.color = "red";
+        reqSpecial.textContent = "❌ Pelo menos 1 caractere especial (@$!%*?&)";
+
+        // Reset mensagem de confirmação de senha
+        matchMessage.style.display = "none";
     });
-
-   });
-</script>
-
+    </script>
 </body>
 </html>

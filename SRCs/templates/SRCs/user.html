@@ -39,7 +39,7 @@
         <td>{{ usuario.perfil }}</td>
         <td>
             {% if usuario.unidade %}
-                {{ usuario.unidade.nome }}
+                {{ usuario.unidade.shopping }}
             {% else %}
                 Sem unidade
             {% endif %}
@@ -74,8 +74,18 @@
             <label>Email:</label>
             <input type="email" name="email" id="email" required>
 
-            <label>Senha:</label>
+            <label>Nova Senha:</label>
             <input type="password" name="password" id="password" placeholder="Deixe em branco para não alterar">
+            <ul class="requisitos-senha">
+                <li id="reqLength" style="color:red;">❌ Pelo menos 8 caracteres</li>
+                <li id="reqLetter" style="color:red;">❌ Pelo menos 1 letra</li>
+                <li id="reqNumber" style="color:red;">❌ Pelo menos 1 número</li>
+                <li id="reqSpecial" style="color:red;">❌ Pelo menos 1 caractere especial (@$!%*?&)</li>
+            </ul>
+
+            <label>Confirmar Nova Senha:</label>
+            <input type="password" name="confirmar_senha" id="confirmarSenha" placeholder="Repita a nova senha">
+            <small id="matchMessage" style="display:none;"></small>
 
             <label>Perfil:</label>
             <select name="perfil" id="perfil">
@@ -89,7 +99,18 @@
             <label>Cartão Postagem:</label>
             <input type="text" name="cartao_postagem" id="cartaoPostagem" required>
 
-            <button type="submit" class="btn salvar">Salvar</button>
+            <label>Unidade:</label>
+            <select name="unidade" id="unidade" required>
+                <option value="">--Selecione--</option>
+                {% for u in unidades %}
+                    <option value="{{ u.id }}">{{ u.shopping }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="botoes-form">
+                <button type="button" id="btnLimpar" class="btn limpar">Limpar</button>
+                <button type="submit" class="btn salvar">Salvar</button>
+            </div>
         </form>
     </div>
 </div>
@@ -103,6 +124,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('modalEditar');
     const fecharModal = document.getElementById('fecharModal');
     const formEditar = document.getElementById('formEditarUsuario');
+    const selectUnidade = document.getElementById('unidade');
+
+    // Campos de senha
+    const passwordInput = document.getElementById("password");
+    const confirmInput = document.getElementById("confirmarSenha");
+    const matchMessage = document.getElementById("matchMessage");
+
+    const reqLength = document.getElementById("reqLength");
+    const reqLetter = document.getElementById("reqLetter");
+    const reqNumber = document.getElementById("reqNumber");
+    const reqSpecial = document.getElementById("reqSpecial");
+
+    const btnLimpar = document.getElementById("btnLimpar");
 
     function atualizarBotoes() {
         const selecionados = document.querySelectorAll('.checkbox-user:checked').length;
@@ -128,21 +162,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- Editar ----
-    btnEditar.addEventListener('click', () => {
+    btnEditar.addEventListener('click', async () => {
         const selecionado = document.querySelector('.checkbox-user:checked');
         if (!selecionado) return;
         const usuarioId = selecionado.dataset.id;
 
-        fetch(`/usuarios/detalhes/${usuarioId}/`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('usuarioId').value = data.id;
-                document.getElementById('username').value = data.username;
-                document.getElementById('email').value = data.email;
-                document.getElementById('perfil').value = data.perfil;
-                document.getElementById('cartaoPostagem').value = data.cartao_postagem;
-                modal.style.display = 'flex';
-            });
+        const [usuarioResponse, unidadesResponse] = await Promise.all([
+            fetch(`/usuarios/detalhes/${usuarioId}/`),
+            fetch(`/unidades/listar/`)
+        ]);
+
+        const usuario = await usuarioResponse.json();
+        const unidades = await unidadesResponse.json();
+
+        document.getElementById('usuarioId').value = usuario.id;
+        document.getElementById('username').value = usuario.username;
+        document.getElementById('email').value = usuario.email;
+        document.getElementById('perfil').value = usuario.perfil;
+        document.getElementById('cartaoPostagem').value = usuario.cartao_postagem;
+
+        selectUnidade.innerHTML = '<option value="">Selecione uma unidade</option>';
+        unidades.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = u.nome;
+            if (usuario.unidade == u.id) opt.selected = true;
+            selectUnidade.appendChild(opt);
+        });
+
+        modal.style.display = 'flex';
     });
 
     fecharModal.addEventListener('click', () => {
@@ -151,6 +199,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     formEditar.addEventListener('submit', (e) => {
         e.preventDefault();
+
+        const senha = passwordInput.value;
+        const confirmar = confirmInput.value;
+
+        // Validação front-end antes de enviar
+        if (senha) {
+            const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!regex.test(senha)) {
+                alert("A senha não atende aos requisitos.");
+                return;
+            }
+            if (senha !== confirmar) {
+                alert("As senhas não coincidem.");
+                return;
+            }
+        }
+
         const formData = new FormData(formEditar);
 
         fetch(`/usuarios/editar/${formData.get('usuario_id')}/`, {
@@ -167,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             location.reload();
         });
     });
+
 
     // ---- Excluir ----
     btnExcluir.addEventListener("click", () => {
@@ -196,8 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => console.error("Erro:", error));
     });
 
-
-    // Função utilitária para capturar o CSRF do cookie
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -212,11 +276,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return cookieValue;
     }
+
+    // ---- Validação de senha ----
+    passwordInput.addEventListener("input", () => {
+        const value = passwordInput.value;
+
+        reqLength.style.color = value.length >= 8 ? "green" : "red";
+        reqLength.textContent = value.length >= 8 ? "✔ Pelo menos 8 caracteres" : "❌ Pelo menos 8 caracteres";
+
+        reqLetter.style.color = /[A-Za-z]/.test(value) ? "green" : "red";
+        reqLetter.textContent = /[A-Za-z]/.test(value) ? "✔ Pelo menos 1 letra" : "❌ Pelo menos 1 letra";
+
+        reqNumber.style.color = /\d/.test(value) ? "green" : "red";
+        reqNumber.textContent = /\d/.test(value) ? "✔ Pelo menos 1 número" : "❌ Pelo menos 1 número";
+
+        reqSpecial.style.color = /[@$!%*?&]/.test(value) ? "green" : "red";
+        reqSpecial.textContent = /[@$!%*?&]/.test(value) ? "✔ Pelo menos 1 caractere especial (@$!%*?&)" : "❌ Pelo menos 1 caractere especial (@$!%*?&)";
+    });
+
+    confirmInput.addEventListener("input", () => {
+        if (confirmInput.value === "") {
+            matchMessage.style.display = "none";
+        } else if (confirmInput.value === passwordInput.value) {
+            matchMessage.style.display = "block";
+            matchMessage.style.color = "green";
+            matchMessage.textContent = "✔ As senhas coincidem";
+        } else {
+            matchMessage.style.display = "block";
+            matchMessage.style.color = "red";
+            matchMessage.textContent = "❌ As senhas não coincidem";
+        }
+    });
+
+    btnLimpar.addEventListener("click", () => {
+        formEditar.reset();
+
+        reqLength.style.color = "red";
+        reqLength.textContent = "❌ Pelo menos 8 caracteres";
+
+        reqLetter.style.color = "red";
+        reqLetter.textContent = "❌ Pelo menos 1 letra";
+
+        reqNumber.style.color = "red";
+        reqNumber.textContent = "❌ Pelo menos 1 número";
+
+        reqSpecial.style.color = "red";
+        reqSpecial.textContent = "❌ Pelo menos 1 caractere especial (@$!%*?&)";
+
+        matchMessage.style.display = "none";
+    });
 });
 </script>
-
-
-
 
 </body>
 </html>

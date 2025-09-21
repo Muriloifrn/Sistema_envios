@@ -1,25 +1,194 @@
-.envio-box {
-    background-color: #f7f7f7;
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-}
-
-.timeline {
-    list-style: none;
+/* ===== Reset ===== */
+* {
+    margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
-.timeline li {
-    padding: 10px 0;
-    border-bottom: 1px solid #ddd;
+body {
+    background: #f4f6f9;
+    color: #2c3e50;
+    padding: 20px;
+}
+
+/* ===== Títulos ===== */
+h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+h3 {
+    margin: 25px 0 15px;
+    font-size: 1.3rem;
+    color: #34495e;
+}
+
+/* ===== Box de informações do envio ===== */
+.envio-box {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-left: 6px solid #3498db;
+}
+
+.envio-box p {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+/* ===== Timeline Horizontal ===== */
+.timeline-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    margin: 50px 0 50px;
+}
+
+.timeline-horizontal::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: #dcdcdc; /* linha base */
+    border-radius: 3px;
+    z-index: 1;
+}
+
+/* Barra de progresso elegante */
+.timeline-progress {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    height: 6px;
+    background: #f39c12; /* laranja */
+    border-radius: 3px;
+    z-index: 2;
+    width: 0%;
+    transition: width 0.6s ease-in-out;
+}
+
+/* ===== Etapas ===== */
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    z-index: 3;
+    position: relative;
+}
+
+.timeline-step .circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dcdcdc;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #dcdcdc;
+    transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+    margin-bottom: 8px;
+}
+
+.timeline-step.completed .circle {
+    background: #f39c12; /* bolinha preenchida */
+    box-shadow: 0 0 0 2px #f39c12;
+}
+
+.timeline-step.paciente-final .circle {
+    /* bolinha da previsão de chegada só laranja no final */
+    background: #f39c12;
+    box-shadow: 0 0 0 2px #f39c12;
+}
+
+.timeline-step p {
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* ===== Status da barra de progresso via Django ===== */
+.timeline-horizontal[data-progress="25"] .timeline-progress {
+    width: 25%;
+}
+.timeline-horizontal[data-progress="50"] .timeline-progress {
+    width: 50%;
+}
+.timeline-horizontal[data-progress="75"] .timeline-progress {
+    width: 75%;
+}
+.timeline-horizontal[data-progress="100"] .timeline-progress {
+    width: 100%;
+}
+
+/* ====== Formulários ====== */
+form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 400px;
+    margin-top: 15px;
 }
 
 form label {
     font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    color: #34495e;
 }
 
 form input[type="date"] {
-    padding: 5px;
-    margin-bottom: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+form button {
+    background: #3498db;
+    color: #fff;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+form button:hover {
+    background: #2980b9;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+    .timeline-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 40px;
+    }
+    .timeline-step {
+        flex-direction: row;
+        margin-bottom: 20px;
+    }
+    .timeline-step p {
+        margin-left: 12px;
+        text-align: left;
+    }
+    .timeline-horizontal::before,
+    .timeline-progress {
+        top: 12px;
+        left: 12px;
+        width: 6px;
+        height: 100%;
+    }
 }

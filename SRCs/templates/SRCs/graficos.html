@@ -1,53 +1,77 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'SRCs/css/graficos.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard de Envios</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'SRCs/css/graficos.css' %}" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    {% include 'SRCs/menu_lateral_oculto.html' %}
-    {% include 'SRCs/icone_user.html' %}
-
-    {% block content %}
     <h1>Dashboard de Envios</h1>
 
-    <!-- Formulário de filtros -->
+    <!-- Filtros -->
     <form method="get" class="filtro-form">
-        <label for="data_inicial">Data inicial:</label>
+        <label for="data_inicio">Data inicial:</label>
         <input type="date" name="data_inicio" id="data_inicio" value="{{ request.GET.data_inicio }}">
+
         <label for="data_fim">Data final:</label>
         <input type="date" name="data_fim" id="data_fim" value="{{ request.GET.data_fim }}">
+
+        <label for="filtro_unidade">Unidade:</label>
+        <select name="filtro_unidade" id="filtro_unidade">
+            <option value="">Todas</option>
+            {% for unidade in unidades %}
+                <option value="{{ unidade.id }}" {% if request.GET.filtro_unidade == unidade.id|stringformat:"s" %}selected{% endif %}>{{ unidade.shopping }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="filtro_usuario">Usuário:</label>
+        <select name="filtro_usuario" id="filtro_usuario">
+            <option value="">Todos</option>
+            {% for usuario in usuarios_list %}
+                <option value="{{ usuario.id }}" {% if request.GET.filtro_usuario == usuario.id|stringformat:"s" %}selected{% endif %}>{{ usuario.username }}</option>
+            {% endfor %}
+        </select>
+
         <button type="submit">Filtrar</button>
+        <a href="{% url 'dashboard' %}" class="btn-limpar">Limpar</a>
     </form>
 
     <!-- Grid de gráficos -->
     <div class="graficos-grid">
         <div class="grafico-card">
-            <h2>Quantidade de envios período</h2>
+            <h2>Quantidade de envios por mês</h2>
             <canvas id="graficoEnvios"></canvas>
         </div>
+
         <div class="grafico-card">
-            <h2>Envios por lojas</h2>
+            <h2>Envios por lojas (remetente)</h2>
             <canvas id="graficoRemetentes"></canvas>
         </div>
+
         <div class="grafico-card">
-            <h2>Envios recebidos por loja</h2>
+            <h2>Envios recebidos por loja (destinatário)</h2>
             <canvas id="graficoDestinatarios"></canvas>
         </div>
+
         <div class="grafico-card">
-            <h2>Gastos por unidade</h2>
+            <h2>Gastos por unidade (destinatário)</h2>
             <canvas id="graficoGastosUnidade"></canvas>
         </div>
+
         <div class="grafico-card">
-            <h2>Quantidade de envios por usuário</h2>
+            <h2>Envios por usuário</h2>
             <canvas id="graficoEnviosUsuario"></canvas>
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal para ampliar gráfico -->
     <div id="modalGrafico" class="modal-grafico">
         <div class="modal-grafico-content">
             <span id="fecharModal" class="modal-grafico-close">&times;</span>
@@ -55,116 +79,22 @@
         </div>
     </div>
 
-    {% endblock %}
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Dados para o JS -->
     <script>
-        // ===== Funções do modal =====
-        const modal = document.getElementById('modalGrafico');
-        const modalCanvas = document.getElementById('graficoModal');
-        const fecharModal = document.getElementById('fecharModal');
-        let graficoModalInstance = null;
-
-        function abrirGraficoModal(chartInstance) {
-            modal.classList.add('active');
-            if (graficoModalInstance) graficoModalInstance.destroy();
-
-            const config = {
-                type: chartInstance.config.type,
-                data: JSON.parse(JSON.stringify(chartInstance.data)),
-                options: JSON.parse(JSON.stringify(chartInstance.options))
-            };
-
-            graficoModalInstance = new Chart(modalCanvas.getContext('2d'), config);
+        window.dashboardData = {
+            enviosLabels: {{ labels|default:"[]"|safe }},
+            enviosValores: {{ valores|default:"[]"|safe }},
+            remetentesLabels: {{ remetentes|default:"[]"|safe }},
+            remetentesValores: {{ qtd_envios|default:"[]"|safe }},
+            destinatariosLabels: {{ destinatarios|default:"[]"|safe }},
+            destinatariosValores: {{ qtd_destinatarios|default:"[]"|safe }},
+            gastosLabels: {{ unidades_destino|default:"[]"|safe }},
+            gastosValores: {{ valores_gastos|default:"[]"|safe }},
+            usuariosLabels: {{ usuarios|default:"[]"|safe }},
+            usuariosValores: {{ qtd_envios_usuario|default:"[]"|safe }},
         }
-
-        fecharModal.onclick = () => modal.classList.remove('active');
-        modal.onclick = e => { if(e.target === modal) modal.classList.remove('active'); }
-
-        // ===== Criação dos gráficos =====
-        // Substitua os valores abaixo pelas variáveis do Django {{ ... }}
-
-        const graficoEnvio = new Chart(document.getElementById('graficoEnvios').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Fev', 'Mar', 'Abr'],
-                datasets: [{ 
-                    label: 'Envios por mês', 
-                    data: [10, 20, 15, 25],
-                    backgroundColor: 'rgba(54,162,235,0.6)',
-                    borderColor: 'rgba(54,162,235,1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-
-        const graficoRemetentes = new Chart(document.getElementById('graficoRemetentes').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Loja A', 'Loja B', 'Loja C'],
-                datasets: [{
-                    label: 'Envios por loja',
-                    data: [12, 8, 20],
-                    backgroundColor: 'rgba(255,99,132,0.6)',
-                    borderColor: 'rgba(255,99,132,1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
-        });
-
-        const graficoDestinatarios = new Chart(document.getElementById('graficoDestinatarios').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Loja X', 'Loja Y', 'Loja Z'],
-                datasets: [{
-                    label: 'Envios recebidos',
-                    data: [5, 15, 10],
-                    backgroundColor: 'rgba(75,192,192,0.6)',
-                    borderColor: 'rgba(75,192,192,1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
-        });
-
-        const graficoGastos = new Chart(document.getElementById('graficoGastosUnidade').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Unidade 1', 'Unidade 2', 'Unidade 3'],
-                datasets: [{
-                    label: 'Gastos (R$)',
-                    data: [200, 350, 150],
-                    backgroundColor: 'rgba(54,162,235,0.6)',
-                    borderColor: 'rgba(54,162,235,1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-
-        const graficoUsuario = new Chart(document.getElementById('graficoEnviosUsuario').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Usuário 1', 'Usuário 2', 'Usuário 3'],
-                datasets: [{
-                    label: 'Envios por usuário',
-                    data: [7, 12, 9],
-                    backgroundColor: 'rgba(255,159,64,0.6)',
-                    borderColor: 'rgba(255,159,64,1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
-        });
-
-        // ===== Eventos para abrir modal =====
-        graficoEnvio.canvas.onclick = () => abrirGraficoModal(graficoEnvio);
-        graficoRemetentes.canvas.onclick = () => abrirGraficoModal(graficoRemetentes);
-        graficoDestinatarios.canvas.onclick = () => abrirGraficoModal(graficoDestinatarios);
-        graficoGastos.canvas.onclick = () => abrirGraficoModal(graficoGastos);
-        graficoUsuario.canvas.onclick = () => abrirGraficoModal(graficoUsuario);
     </script>
+
+    <script src="{% static 'SRCs/js/graficos.js' %}"></script>
 </body>
 </html>

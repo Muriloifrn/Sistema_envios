@@ -8,17 +8,14 @@
 
 /* ======== Estilo geral ======== */
 body {
-    background-image: url('../imagens/Fundo-home.png');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
+    background-color: #f5f7fa; 
     color: #333;
     line-height: 1.6;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 40px 20px;
-    min-height: 100vh; /* garante que cubra a altura da tela */
+    min-height: 100vh;
 }
 
 /* ======== Título ======== */
