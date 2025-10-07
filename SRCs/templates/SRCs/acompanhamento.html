@@ -14,7 +14,7 @@
     {% include 'SRCs/menu_lateral_oculto.html' %}
     {% include 'SRCs/icone_user.html' %}
 
-    <!-- ===== Filtro por Status ===== -->
+    <!-- ===== Título e Filtro ===== -->
     <div class="topo-pagina">
         <h1>Acompanhamento de Envios</h1>
 
@@ -29,14 +29,23 @@
         </div>
     </div>
 
-
+    <!-- ===== Lista de Envios ===== -->
     <div class="lista-envios">
         {% for envio in envios %}
         <div class="card-envio status-{{ envio.status }}">
             <div class="card-header">
-                <a href="{% url 'detalhe_envio' envio.etiqueta %}">
-                    ENV-{{ envio.id_visual }}
-                </a>
+                {% if envio.etiqueta %}
+                    <!-- Quando já existe etiqueta -->
+                    <a href="{% url 'detalhe_envio' envio.etiqueta %}">
+                        ENV-{{ envio.id_visual }}
+                    </a>
+                {% else %}
+                    <!-- Quando ainda não existe etiqueta -->
+                    <a href="{% url 'detalhe_envio_id' envio.id %}">
+                        ENV-{{ envio.id_visual }}
+                        <span style="color: gray; font-size: 0.9em;">(sem etiqueta)</span>
+                    </a>
+                {% endif %}
                 <span class="status">{{ envio.get_status_display }}</span>
             </div>
             <div class="card-body">
@@ -51,7 +60,7 @@
         {% endfor %}
     </div>
 
-    <!-- ===== Script do filtro ===== -->
+    <!-- ===== Script do Filtro ===== -->
     <script>
         document.getElementById("statusFilter").addEventListener("change", function() {
             let filtro = this.value;

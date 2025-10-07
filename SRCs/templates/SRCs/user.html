@@ -31,7 +31,11 @@
     <tr>
         <td><input type="checkbox" class="checkbox-user" data-id="{{ usuario.id }}"></td>
         <td>
-            <img src="{% static 'SRCs/imagens/user-icon.png' %}" alt="Foto" class="user-photo">
+            {% if usuario.foto %}
+                <img src="{{ usuario.foto.url }}" alt="Foto de {{ usuario.user.username }}" class="user-photo">
+            {% else %}
+                <img src="{% static 'SRCs/imagens/user-icon.png' %}" alt="Foto padrão" class="user-photo">
+            {% endif %}
             <span>{{ usuario.user.username }}</span>
         </td>
         <td>{{ usuario.user.email }}</td>

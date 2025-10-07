@@ -196,7 +196,12 @@ class formularioEnvio(forms.ModelForm):
             'data_solicitacao': forms.DateInput(attrs={'type': 'date'}),
             'motivo': forms.Textarea(attrs={'rows': 2}),
         }
-
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['remetente'].queryset = self.fields['remetente'].queryset.filter(excluida=False)
+        self.fields['destinatario'].queryset = self.fields['destinatario'].queryset.filter(excluida=False)
+        
     def clean_etiqueta(self):
         etiqueta = self.cleaned_data['etiqueta']
         if Envio.objects.filter(etiqueta=etiqueta).exists():

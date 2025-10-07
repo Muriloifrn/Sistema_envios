@@ -157,3 +157,12 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+
+.user-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    vertical-align: middle;
+}

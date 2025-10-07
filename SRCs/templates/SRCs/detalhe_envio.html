@@ -9,15 +9,30 @@
     <title>Detalhe Envio</title>
 </head>
 <body>
-    <h2>Detalhes do Envio ENV-{{ envio.id_visual }}</h2>
+
+    <h2>Detalhes do Envio 
+        {% if envio.etiqueta %}
+            ({{ envio.etiqueta }})
+        {% else %}
+            <span style="color: gray;">(Etiqueta pendente)</span>
+        {% endif %}
+    </h2>
+
+    <!-- Aviso de etiqueta pendente -->
+    {% if not envio.etiqueta %}
+        <div style="background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+            ⚠️ Este envio ainda não possui uma etiqueta cadastrada.
+        </div>
+    {% endif %}
 
     <div class="envio-box">
         <p><strong>Status:</strong> {{ envio.get_status_display }}</p>
         <p><strong>Remetente:</strong> {{ envio.remetente }}</p>
         <p><strong>Destinatário:</strong> {{ envio.destinatario }}</p>
-        <p><strong>Solicitante:</strong> {{ envio.user.user.username }}</p>
+        <p><strong>Solicitante:</strong> {{ envio.user.username }}</p>
     </div>
 
+    <!-- Linha do tempo -->
     <h3>Envio:</h3>
     <div class="timeline-horizontal">
         <div class="timeline-step completed">
@@ -40,37 +55,47 @@
             <p>Chegada<br>{{ envio.data_chegada|default:"-" }}</p>
         </div>
 
-        <!-- Linha de progresso -->
         <div class="timeline-progress"></div>
     </div>
 
-
-    {% if is_remetente and envio.status == 'pendente_envio' %}
-    <h3>Preencha as informações do envio</h3>
-    <form method="post">
-        {% csrf_token %}
-        <label for="data_postagem">Data da Postagem*:</label>
-        <input type="date" name="data_postagem" required><br><br>
-
-        <label for="previsao_chegada">Previsão de Chegada*:</label>
-        <input type="date" name="previsao_chegada"><br><br>
-
-        <button type="submit">Atualizar envio</button>
-    </form>
+    <!-- ======== FORMULÁRIO PARA CADASTRAR ETIQUETA (SÓ REMETENTE) ======== -->
+    {% if is_remetente and not envio.etiqueta %}
+        <h3>Cadastrar Etiqueta do Envio</h3>
+        <form method="post">
+            {% csrf_token %}
+            <label for="etiqueta">Etiqueta*:</label>
+            <input type="text" name="etiqueta" required placeholder="Digite a etiqueta"><br><br>
+            <button type="submit">Salvar Etiqueta</button>
+        </form>
     {% endif %}
 
+    <!-- ======== FORMULÁRIO DE POSTAGEM ======== -->
+    {% if is_remetente and envio.status == 'pendente_envio' and envio.etiqueta %}
+        <h3>Preencha as informações do envio</h3>
+        <form method="post">
+            {% csrf_token %}
+            <label for="data_postagem">Data da Postagem*:</label>
+            <input type="date" name="data_postagem" required><br><br>
+
+            <label for="previsao_chegada">Previsão de Chegada:</label>
+            <input type="date" name="previsao_chegada"><br><br>
+
+            <button type="submit">Atualizar envio</button>
+        </form>
+    {% endif %}
+
+    <!-- ======== FORMULÁRIO DE CONFIRMAÇÃO (DESTINATÁRIO) ======== -->
     {% if is_destinatario and envio.status == 'aguardando_recebimento' %}
-    <h3>Conformar recebimento</h3>
-    <form method="post">
-        {% csrf_token %}
-        <label for="data_chegada">Data da Chegada*:</label>
-        <input type="date" name="data_chegada" required><br><br>
+        <h3>Confirmar recebimento</h3>
+        <form method="post">
+            {% csrf_token %}
+            <label for="data_chegada">Data da Chegada*:</label>
+            <input type="date" name="data_chegada" required><br><br>
 
-        <button type="submit" name="confirmar_recebimento">Confirmar Recebimento</button>
-    </form>
-
+            <button type="submit" name="confirmar_recebimento">Confirmar Recebimento</button>
+        </form>
     {% endif %}
-    {% endblock %}
 
 </body>
 </html>
+{% endblock %}

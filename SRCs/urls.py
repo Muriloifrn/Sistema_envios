@@ -20,15 +20,16 @@ urlpatterns = [
     path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
     path("usuarios/excluir/", views.excluir_usuario, name="excluir_usuario"),
     path('home/acompanhamento/detalhes/<str:etiqueta>', views.detalhe_envio, name='detalhe_envio'),
+    path('home/acompanhamento/detalhes/id/<int:id>/', views.detalhe_envio_id, name='detalhe_envio_id'),
     path('home/unidades/importar', views.importar_unidade, name='importar_unidade'),
     path('usuarios/', views.listar_usuarios, name='listar_usuarios'),
-    path('alterar-foto/', views.alterar_foto, name='alterar_foto'),
+    path('alterar_foto/', views.alterar_foto, name='alterar_foto'),
     path('usuarios/detalhes/<int:usuario_id>/', views.detalhes_usuario, name='detalhes_usuario'),
     path('unidades/detalhes/<int:unidade_id>/', views.detalhes_unidade, name='detalhes_unidade'),
     path('unidades/editar/<int:unidade_id>/', views.editar_unidade_ajax, name='editar_unidade_ajax'),
     path('unidades/excluir/', views.excluir_unidades_ajax, name='excluir_unidades_ajax'),
     path('unidades/listar/', views.listar_unidades, name='listar_unidades'),
-
+    path('rateio/preencher-etiqueta/<int:envio_id>/', views.preencher_etiqueta, name='preencher_etiqueta'),
 
 
 

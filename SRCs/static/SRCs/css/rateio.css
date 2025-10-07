@@ -191,3 +191,8 @@ body {
 .close:hover {
     color: #000;
 }
+
+.pendente-etiqueta {
+    background-color: #fff3cd; /* amarelo suave */
+    font-weight: bold;
+}

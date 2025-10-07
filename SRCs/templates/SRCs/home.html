@@ -15,53 +15,120 @@
 
 <div class="menu-container">
 
-    <a href="{% url 'cadastro_user' %}">
-    <div class="menu-item f1">
-        <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">
-    <p>Cadastro de usuário</p>
-    </div></a>
+    <!-- ADMIN - vê tudo -->
+    {% if perfil == 'Admin' %}
+        <a href="{% url 'cadastro_user' %}">
+        <div class="menu-item f1">
+            <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">
+            <p>Cadastro de usuário</p>
+        </div></a>
 
-    <a href="{% url 'user' %}">
-    <div class="menu-item f2">
-        <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">
-    <p>Editar usuário</p>
-    </div></a>
+        <a href="{% url 'user' %}">
+        <div class="menu-item f2">
+            <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">
+            <p>Editar usuário</p>
+        </div></a>
 
-    <a href="{% url 'cadastro_unidade' %}">
-    <div class="menu-item f3">
-        <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">
-    <p>Cadastro de unidade</p>
-    </div></a>
+        <a href="{% url 'cadastro_unidade' %}">
+        <div class="menu-item f3">
+            <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">
+            <p>Cadastro de unidade</p>
+        </div></a>
 
-    <a href="{% url 'unidade' %}">
-    <div class="menu-item f4">
-        <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">
-    <p>Editar unidade</p>
-    </div></a>
+        <a href="{% url 'unidade' %}">
+        <div class="menu-item f4">
+            <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">
+            <p>Editar unidade</p>
+        </div></a>
 
-    <a href="{% url 'cadastro_envio' %}">
-    <div class="menu-item f5">
-        <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
-    <p>Cadastrar envio</p>
-    </div></a>
+        <a href="{% url 'cadastro_envio' %}">
+        <div class="menu-item f5">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+            <p>Cadastrar envio</p>
+        </div></a>
 
-    <a href="{% url 'rateio' %}">
-    <div class="menu-item f6">
-        <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
-    <p>Consultar rateio</p>
-    </div></a>
+        <a href="{% url 'rateio' %}">
+        <div class="menu-item f6">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+            <p>Consultar rateio</p>
+        </div></a>
 
-    <a href="{% url 'dashboard' %}">
-    <div class="menu-item f7">
-        <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">
-    <p>Dashboard</p>
-    </div> </a>
+        <a href="{% url 'dashboard' %}">
+        <div class="menu-item f7">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">
+            <p>Dashboard</p>
+        </div></a>
 
-    <a href="{% url 'acompanhamento' %}">
-    <div class="menu-item f8">
-        <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">
-    <p>Status dos envios</p>
-    </div></a>
+        <a href="{% url 'acompanhamento' %}">
+        <div class="menu-item f8">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">
+            <p>Status dos envios</p>
+        </div></a>
+
+    {% elif perfil == 'Analista' %}
+        <a href="{% url 'cadastro_envio' %}">
+        <div class="menu-item f5">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+            <p>Cadastrar envio</p>
+        </div></a>
+
+        <a href="{% url 'rateio' %}">
+        <div class="menu-item f6">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+            <p>Consultar rateio</p>
+        </div></a>
+
+        <a href="{% url 'dashboard' %}">
+        <div class="menu-item f7">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
+            <p>Dashboard</p>
+        </div></a>
+
+        <a href="{% url 'acompanhamento' %}">
+        <div class="menu-item f8">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+            <p>Status dos envios</p>
+        </div></a>
+
+    {% elif perfil == 'Agente' %}
+        <a href="{% url 'cadastro_envio' %}">
+        <div class="menu-item f5">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+            <p>Cadastrar envio</p>
+        </div></a>
+
+        <a href="{% url 'rateio' %}">
+        <div class="menu-item f6">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+            <p>Consultar rateio</p>
+        </div></a>
+
+        <a href="{% url 'acompanhamento' %}">
+        <div class="menu-item f8">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+            <p>Status dos envios</p>
+        </div></a>
+
+    {% elif perfil == 'Supervisor' %}
+        <a href="{% url 'rateio' %}">
+        <div class="menu-item f6">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+            <p>Consultar rateio</p>
+        </div></a>
+
+        <a href="{% url 'dashboard' %}">
+        <div class="menu-item f7">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
+            <p>Dashboard</p>
+        </div></a>
+
+    {% elif perfil == 'Cliente' %}
+        <a href="{% url 'acompanhamento' %}">
+        <div class="menu-item f8">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+            <p>Status dos envios</p>
+        </div></a>
+    {% endif %}
 
 </div>
 

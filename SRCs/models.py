@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
+import logging
+
 
 class Unidade(models.Model):
     id = models.AutoField(primary_key=True)
@@ -63,10 +65,22 @@ class Usuario(models.Model):
         verbose_name = "usuario"
         verbose_name_plural = "usuarios"
 
+    logger = logging.getLogger(__name__)
+
     def atribuir_grupo(self):
-        grupo_nome = self.perfil  # usa o valor exato do choices
-        grupo, created = Group.objects.get_or_create(name=grupo_nome)
-        self.user.groups.add(grupo)
+        grupo_nome = self.perfil or 'Cliente'
+
+        try:
+            grupo, created = Group.objects.get_or_create(name=grupo_nome)
+            if created:
+                logger.info(f"Grupo '{grupo_nome}' criado automaticamente.")
+            if self.user_id:
+                self.user.groups.add(grupo)
+            else:
+                logger.warning(f"Usuário sem relação User ao tentar atribuir grupo '{grupo_nome}'.")
+        except Exception as e:
+            logger.error(f"Erro ao atribuir grupo '{grupo_nome}' para usuário '{self}': {e}")
+
 
 
     def foto_url(self):
@@ -82,7 +96,8 @@ class Envio(models.Model):
         ('entregue', 'Entregue'),
     ]
 
-    etiqueta = models.CharField("ETIQUETA", max_length=50, unique=True, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    etiqueta = models.CharField("ETIQUETA", max_length=50, unique=True, null=True, blank=True)
     id_visual = models.IntegerField("ID Visual", unique=True, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, verbose_name="USUÁRIO", related_name="envios_cadastrados")
     remetente = models.ForeignKey('Unidade', models.DO_NOTHING, verbose_name="REMETENTE")
@@ -111,19 +126,6 @@ class Envio(models.Model):
         verbose_name = "envio"
         verbose_name_plural = "envios"
 
-class ItemEnvio(models.Model):
-    envio = models.ForeignKey(Envio, on_delete=models.CASCADE, related_name="itens")
-    conteudo = models.CharField("CONTEÚDO", max_length=200)
-    quantidade = models.IntegerField("QUANTIDADE")
-    valor_unitario = models.DecimalField("VALOR UNITÁRIO", max_digits=10, decimal_places=2)
-
-    def valor_total(self):
-        return self.quantidade * self.valor_unitario
-
-    def __str__(self):
-        return f"{self.conteudo} ({self.quantidade}x)"
-
-
 
 class Rateio(models.Model):
     id = models.AutoField(primary_key=True)
@@ -149,3 +151,15 @@ class Rateio(models.Model):
         db_table = 'rateio'
         verbose_name = "rateio"
         verbose_name_plural = "rateios"
+
+class ItemEnvio(models.Model):
+    envio = models.ForeignKey(Envio, on_delete=models.CASCADE, related_name="itens")
+    conteudo = models.CharField("CONTEÚDO", max_length=200)
+    quantidade = models.IntegerField("QUANTIDADE")
+    valor_unitario = models.DecimalField("VALOR UNITÁRIO", max_digits=10, decimal_places=2)
+
+    def valor_total(self):
+        return self.quantidade * self.valor_unitario
+
+    def __str__(self):
+        return f"{self.conteudo} ({self.quantidade}x)"

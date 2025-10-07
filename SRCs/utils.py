@@ -9,6 +9,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
 from reportlab.lib.units import mm
 
+
 def _format_currency(value):
     """Formata número Decimal/float para 'R$ 1.234,56'."""
     try:
@@ -16,8 +17,8 @@ def _format_currency(value):
     except Exception:
         v = 0.0
     s = f"{v:,.2f}"
-    # troca separadores para formato brasileiro
     return "R$ " + s.replace(",", "X").replace(".", ",").replace("X", ".")
+
 
 def _format_date_pt(d):
     """Formata uma date para 'DD de mês de AAAA' em pt-BR."""
@@ -29,26 +30,26 @@ def _format_date_pt(d):
         d = date.today()
     return f"{d.day} de {meses[d.month - 1]} de {d.year}"
 
+
 def _unidade_to_dict(unidade):
-    """Tenta extrair campos comuns de Unidade com fallback para strings vazias."""
+    """Extrai os campos corretos da unidade, montando endereço."""
     if unidade is None:
-        return {"nome":"", "endereco":"", "cidade":"", "cep":"", "cnpj":""}
+        return {"nome":"", "endereco":"", "cidade":"", "uf":"", "cep":"", "cnpj":""}
+
+    endereco = f"{unidade.rua}, {unidade.numero} - {unidade.bairro}"
     return {
-        "nome": getattr(unidade, "nome", "") or getattr(unidade, "razao_social", "") or "",
-        "endereco": getattr(unidade, "endereco", "") or "",
-        "cidade": getattr(unidade, "cidade", "") or "",
-        "cep": getattr(unidade, "cep", "") or "",
-        "cnpj": getattr(unidade, "cnpj", "") or getattr(unidade, "CNPJ", "") or "",
+        "nome": unidade.shopping,
+        "endereco": endereco,
+        "cidade": unidade.cidade,
+        "uf": unidade.estado,
+        "cep": unidade.cep,
+        "cnpj": unidade.cnpj or "",
     }
 
+
 def gerar_pdf_declaracao(envio):
-    """
-    Gera um PDF com a 'DECLARAÇÃO DE CONTEÚDO' baseado no modelo enviado.
-    Recebe o objeto envio (instância de Envio já salva).
-    Retorna: FileResponse (download do PDF).
-    """
+    """Gera um PDF com a 'DECLARAÇÃO DE CONTEÚDO' baseado no modelo enviado."""
     buffer = BytesIO()
-    # Margens em mm
     left_right_margin = 15 * mm
     top_bottom_margin = 20 * mm
     doc = SimpleDocTemplate(
@@ -88,14 +89,19 @@ def gerar_pdf_declaracao(envio):
         f"<b>CNPJ:</b> {dest['cnpj']}"
     )
 
-    two_col = [[Paragraph(remet_html, small), Paragraph(dest_html, small)]]
-    # calcula largura disponível (A4 largura - margens)
     page_width, page_height = A4
     usable_width = page_width - (left_right_margin * 2)
 
-    table = Table(two_col, colWidths=[usable_width / 2.0, usable_width / 2.0])
+    quadro_dados = [
+        [Paragraph("<b>REMETENTE</b>", small), Paragraph("<b>DESTINATÁRIO</b>", small)],
+        [Paragraph(remet_html, small), Paragraph(dest_html, small)]
+    ]
+
+    table = Table(quadro_dados, colWidths=[usable_width / 2.0, usable_width / 2.0])
     table.setStyle(TableStyle([
-        ('VALIGN',(0,0),(-1,-1),'TOP'),
+        ('GRID', (0,0), (-1,-1), 0.8, colors.black),
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING',(0,0),(-1,-1),4),
         ('RIGHTPADDING',(0,0),(-1,-1),4),
     ]))
@@ -122,14 +128,10 @@ def gerar_pdf_declaracao(envio):
         total += (Decimal(qtd) * val_dec)
         data.append(linha)
 
-    # se não houver itens, adiciona uma linha vazia
     if len(data) == 1:
         data.append(["", "Sem conteúdo", "0", _format_currency(0)])
-
-    # linha de totais
     data.append(["", "", "TOTAIS", _format_currency(total)])
 
-    # col widths: ITEM 20mm, VALOR 30mm, QTD 25mm, resto pra CONTEÚDO
     col_item = 20 * mm
     col_qtd = 25 * mm
     col_val = 35 * mm
@@ -147,7 +149,6 @@ def gerar_pdf_declaracao(envio):
     elements.append(tbl)
     elements.append(Spacer(1, 12))
 
-    # Texto de declaração (parágrafo fixo do modelo)
     texto_decl = (
         "Declaro que não me enquadro no conceito de contribuinte previsto no art. 4° da Lei Complementar n° 87/1996, "
         "uma vez que não realizo, com habitualidade ou volume que caracterize intuito comercial, operações de "
@@ -162,21 +163,18 @@ def gerar_pdf_declaracao(envio):
     elements.append(Paragraph(texto_decl, small))
     elements.append(Spacer(1, 18))
 
-    # cidade, data e assinatura
-    cidade_para_data = remet.get("cidade", "") or dest.get("cidade", "")
-    data_texto = f"{cidade_para_data} - UF, { _format_date_pt(getattr(envio, 'data_solicitacao', None)) }"
+    cidade_para_data = f"{remet['cidade']} - {remet['uf']}" if remet['cidade'] else f"{dest['cidade']} - {dest['uf']}"
+    data_texto = f"{cidade_para_data}, { _format_date_pt(getattr(envio, 'data_solicitacao', None)) }"
     elements.append(Paragraph(data_texto, normal))
     elements.append(Spacer(1, 28))
     elements.append(Paragraph("Assinatura do declarante ____________________________________________", normal))
     elements.append(Spacer(1, 14))
-    # Observação
+
     obs = ("OBSERVAÇÃO: Constitui crime a ordem tributária suprimir ou reduzir tributo, ou contribuição social "
            "e qualquer acessório (Lei 8.137/90 Art. 1°, V)")
     elements.append(Paragraph(obs, small))
 
-    # Gera o PDF
     doc.build(elements)
-
     buffer.seek(0)
     filename = f"declaracao_{getattr(envio, 'etiqueta', 'envio')}.pdf"
     return FileResponse(buffer, as_attachment=True, filename=filename)

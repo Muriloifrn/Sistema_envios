@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <title>Rateio</title>
     <link rel="stylesheet" href="{% static 'SRCs/css/rateio.css' %}">
+    <style>
+        /* Destaque para envios sem etiqueta */
+        .pendente-etiqueta {
+            background-color: #fff3cd; /* amarelo suave */
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -20,7 +27,7 @@
             {% endfor %}
         {% endif %}
 
-        <!-- Caixa com ações -->
+        <!-- Ações: Upload e Exportar -->
         <div class="quadro-acoes">
             <form method="post" enctype="multipart/form-data" class="form-upload">
                 {% csrf_token %}
@@ -35,10 +42,9 @@
             <a href="{% url 'exportar_rateio' %}" class="btn exportar">⬇ Exportar</a>
         </div>
 
-        <!-- Caixa com a tabela -->
+        <!-- Tabela de envios -->
         <div class="quadro-envios">
             <h3 class="subtitulo">Planilha de Rateio</h3>
-
             <div class="tabela-container">
                 <table class="tabela-rateio">
                     <thead>
@@ -55,7 +61,7 @@
                     </thead>
                     <tbody>
                         {% for item in dados %}
-                        <tr>
+                        <tr {% if not item.etiqueta %}class="pendente-etiqueta"{% endif %}>
                             <td>{{ item.fatura }}</td>
                             <td>{{ item.solicitante }}</td>
                             <td>{{ item.conteudo }}</td>
@@ -64,9 +70,18 @@
                             <td>{{ item.remetente }}</td>
                             <td>{{ item.destinatario }}</td>
                             <td>
+                                <!-- Botão abrir modal de detalhes -->
                                 <button type="button" class="btn detalhar" onclick="abrirModal('{{ forloop.counter0 }}')">Detalhar</button>
 
-                                <!-- Modal -->
+                                <!-- Botão para preencher etiqueta se estiver pendente -->
+                               {% if not item.etiqueta and item.id %}
+                                    <button type="button" class="btn preencher" onclick="abrirModalPreencher('{{ item.id }}')">
+                                        Preencher Etiqueta
+                                    </button>
+                                {% endif %}
+
+
+                                <!-- Modal de detalhes -->
                                 <div class="modal" id="modal-{{ forloop.counter0 }}">
                                     <div class="modal-content">
                                         <span class="close" onclick="fecharModal('{{ forloop.counter0 }}')">&times;</span>
@@ -83,7 +98,7 @@
                                             <p><strong>Cartão Postagem:</strong> {{ item.cartao_postagem }}</p>
                                             <p><strong>Titular do Cartão:</strong> {{ item.titular_cartao }}</p>
                                             <p><strong>Nº Autorização:</strong> {{ item.numero_autorizacao }}</p>
-                                            <p><strong>Etiqueta:</strong> {{ item.etiqueta }}</p>
+                                            <p><strong>Etiqueta:</strong> {{ item.etiqueta|default:"PENDENTE" }}</p>
                                             <p><strong>Unidade Postagem:</strong> {{ item.unidade_postagem }}</p>
                                             <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
                                             <p><strong>Peso:</strong> {{ item.peso }}</p>
@@ -97,6 +112,23 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Modal Preencher Etiqueta -->
+                                {% if not item.etiqueta and item.id %}
+                                <div class="modal" id="modal-preencher-{{ item.id }}">
+                                    <div class="modal-content">
+                                        <span class="close" onclick="fecharModalPreencher('{{ item.id }}')">&times;</span>
+                                        <h3>Preencher Etiqueta</h3>
+                                        <form action="{% url 'preencher_etiqueta' item.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <label for="etiqueta">Etiqueta:</label>
+                                            <input type="text" name="etiqueta" value="" required>
+                                            <button type="submit" class="btn">Salvar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                             </td>
                         </tr>
                         {% empty %}
@@ -109,17 +141,22 @@
     </div>
 
     <script>
+        // Modal detalhes
         function abrirModal(id) {
-            let modal = document.getElementById("modal-" + id);
-            modal.style.display = "flex"; // centraliza porque usa flexbox
+            document.getElementById("modal-" + id).style.display = "flex";
         }
-
         function fecharModal(id) {
-            let modal = document.getElementById("modal-" + id);
-            modal.style.display = "none";
+            document.getElementById("modal-" + id).style.display = "none";
         }
-        </script>
 
+        // Modal preencher etiqueta
+        function abrirModalPreencher(id) {
+            document.getElementById("modal-preencher-" + id).style.display = "flex";
+        }
+        function fecharModalPreencher(id) {
+            document.getElementById("modal-preencher-" + id).style.display = "none";
+        }
+    </script>
 
 </body>
 </html>

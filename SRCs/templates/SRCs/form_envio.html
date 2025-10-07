@@ -100,7 +100,7 @@
                 <p>Total Geral: <span id="total-geral">R$ 0,00</span></p>
                 <div class="botoes">
                     <button type="button" onclick="window.location.href='{% url 'rateio' %}'" class="btn-secundario">Acessar Rateio</button>
-                    <button type="button" id="btnSalvar" class="btn-principal">Salvar</button>
+                    <button type="submit" id="btnSalvar" class="btn-principal">Salvar</button>
                 </div>
             </div>
 
@@ -110,6 +110,18 @@
         </form>
     </div>
 
+    {% if sucesso %}
+    <div id="modal-sucesso" class="modal">
+        <div class="modal-content">
+            <p>Registro de envio realizado com sucesso!</p>
+            <button id="btnModalOk">OK</button>
+        </div>
+    </div>
+    {% endif %}
+
+
     <script src="{% static 'SRCs/js/envio.js' %}"></script>
+
+
 </body>
 </html>

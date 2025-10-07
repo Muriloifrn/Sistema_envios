@@ -1,20 +1,59 @@
 {% load static %}
+
 <div class="user-menu">
-    <!-- Foto do usuário (ou padrão se não tiver) -->
     <img src="{% if request.user.usuario.foto %}{{ request.user.usuario.foto.url }}{% else %}{% static 'SRCs/imagens/user-icon.png' %}{% endif %}" 
          alt="Usuário" class="user-icon" onclick="toggleMenu()" />
 
-    <!-- Dropdown -->
     <div id="userDropdown" class="dropdown-content">
         <p><strong>{{ request.user.username }}</strong></p>
         <p>{{ request.user.email }}</p>
         <p>Perfil: {{ request.user.groups.first.name|default:"-" }}</p>
 
-        <!-- Botão para alterar foto -->
-        <a href="{% url 'alterar_foto' %}">Alterar Foto</a>
-        <a href="{% url 'login' %}">Sair</a>
+        <!-- formulário escondido que será submetido -->
+        <form id="form-alterar-foto" action="{% url 'alterar_foto' %}" method="post" enctype="multipart/form-data" style="display:none;">
+            {% csrf_token %}
+            <input type="file" id="input-foto" name="foto" accept="image/*">
+        </form>
+
+        <!-- este link só abre o seletor de arquivo -->
+        <a href="#" onclick="document.getElementById('input-foto').click(); return false;">Alterar Foto</a>
+        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" style="background: none; border: none; color: #333; font-weight: bold; cursor: pointer; width: 100%; text-align: left; padding: 8px;">
+            Sair
+        </button>
+    </form>
+
     </div>
 </div>
+
+<script>
+function toggleMenu() {
+    document.getElementById("userDropdown").classList.toggle("show");
+}
+
+// quando o usuário escolher um arquivo, envia o form automaticamente
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('input-foto');
+    if (input) {
+        input.addEventListener('change', function() {
+            if (this.files && this.files.length) {
+                document.getElementById('form-alterar-foto').submit();
+            }
+        });
+    }
+});
+
+// fecha dropdown clicando fora (se já implementado)
+document.addEventListener("click", function(event) {
+    var menu = document.getElementById("userDropdown");
+    var icon = document.querySelector(".user-icon");
+    if (!icon.contains(event.target) && !menu.contains(event.target)) {
+        menu.classList.remove("show");
+    }
+});
+</script>
+
 
 <style>
 .user-menu {
@@ -67,16 +106,4 @@
 }
 </style>
 
-<script>
-function toggleMenu() {
-    document.getElementById("userDropdown").classList.toggle("show");
-}
 
-document.addEventListener("click", function(event) {
-    var menu = document.getElementById("userDropdown");
-    var icon = document.querySelector(".user-icon");
-    if (!icon.contains(event.target) && !menu.contains(event.target)) {
-        menu.classList.remove("show");
-    }
-});
-</script>

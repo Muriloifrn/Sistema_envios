@@ -56,4 +56,13 @@ document.addEventListener("DOMContentLoaded", () => {
         gerarPdfInput.value = gerar ? "sim" : "nao";
         form.submit();
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const btnOk = document.getElementById('btnModalOk');
+    if(btnOk){
+        btnOk.addEventListener('click', () => {
+            document.getElementById('modal-sucesso').style.display = 'none';
+        });
+    }
+});
 });

@@ -18,10 +18,10 @@ from django.http import HttpResponse
 from django.db.models import Q
 from django.forms import inlineformset_factory
 import pandas as pd
-from .utils import gerar_pdf_declaracao  # Corrigir nome e acentuação
+from .utils import gerar_pdf_declaracao 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from django.db.models import Sum
+from django import forms
 
 
 
@@ -52,6 +52,7 @@ def home(request):
     return render(request, 'SRCs/home.html', {
         'ultimos_envios': ultimos_envios,
         'pendentes': pendentes,
+        'perfil': usuario_logado.perfil,
     })
 
 # View que lista todos os usuários (acesso apenas para quem tem permissão)
@@ -212,6 +213,11 @@ ItemEnvioFormSet = inlineformset_factory(
     can_delete=True
 )
 
+# View para cadastrar um envio 
+@login_required
+@permission_required('SRCs.cadastrar_envio', raise_exception=True)
+# SRCs/views.py
+
 # View para cadastrar um envio (ex: envio pelos Correios)
 @login_required
 @permission_required('SRCs.cadastrar_envio', raise_exception=True)
@@ -243,6 +249,26 @@ def cadastro_envio(request):
         'formset': formset
     })
 
+
+class PreencherEtiquetaForm(forms.ModelForm):
+    class Meta:
+        model = Envio
+        fields = ['etiqueta']
+        widgets = {
+            'etiqueta': forms.TextInput(attrs={'placeholder': 'Digite a etiqueta'})
+        }
+
+def preencher_etiqueta(request, envio_id):
+    envio = get_object_or_404(Envio, id_visual=envio_id)  # usa id_visual ou pk conforme seu model
+    if request.method == 'POST':
+        form = PreencherEtiquetaForm(request.POST, instance=envio)
+        if form.is_valid():
+            form.save()
+            return redirect('rateio')
+    else:
+        form = PreencherEtiquetaForm(instance=envio)
+    
+    return render(request, 'SRCs/preencher_etiqueta.html', {'form': form, 'envio': envio})
 
 # Função auxiliar para converter valores em decimal de forma segura
 def safe_decimal(valor):
@@ -371,6 +397,7 @@ def rateio(request):
         cartao_postagem = getattr(getattr(envio.user, 'usuario', None), 'cartao_postagem', '')
 
         dados_completos.append({
+            'id': envio.id,
             'fatura': rateio.fatura if rateio else 'PENDENTE',
             'solicitante': envio.user.get_full_name() or envio.user.username,
             'motivo': getattr(envio, 'motivo', ''),
@@ -393,6 +420,7 @@ def rateio(request):
             'desconto': getattr(rateio, 'desconto', ''),
             'centro_custo': getattr(envio.destinatario, 'centro_custo', ''),
             'empresa': getattr(envio.destinatario, 'empresa', ''),
+            'pendente_etiqueta': not bool(envio.etiqueta),
         })
         etiquetas_processadas.add(envio.etiqueta)
 
@@ -613,14 +641,16 @@ def acompanhamento(request):
     if not usuario:
         messages.error(request, "Usuário sem vínculo com unidade.")
         return redirect('home')
-    
+
     unidade_usuario = usuario.unidade
 
     envios = Envio.objects.filter(
         Q(remetente=unidade_usuario) |
-        (Q(destinatario=unidade_usuario) & Q(usuario_destinatario__in=[usuario, None])) |
-        Q(user=request.user)   # <<< aqui era o problema
-    ).order_by('-data_solicitacao')
+        Q(destinatario=unidade_usuario) |
+        Q(usuario_destinatario=usuario) |  # ← garante que cliente veja seus envios
+        Q(user=request.user)  # criador do envio
+    ).distinct().order_by('-data_solicitacao')
+
     context = {
         'envios': envios,
         'usuario': usuario
@@ -630,19 +660,24 @@ def acompanhamento(request):
 
 @login_required
 def detalhe_envio(request, etiqueta):
-    envio = get_object_or_404(Envio, etiqueta=etiqueta)
     usuario = Usuario.objects.filter(user=request.user).first()
 
     if not usuario:
         messages.error(request, "Usuário sem vínculo com unidade.")
         return redirect('acompanhamento')
-    
+
+    # Busca o envio pela etiqueta
+    envio = get_object_or_404(Envio, etiqueta=etiqueta)
+
+    # Verifica papéis
     is_remetente = envio.remetente == usuario.unidade
     is_destinatario = envio.destinatario == usuario.unidade and (
-    envio.usuario_destinatario == usuario or envio.usuario_destinatario is None
+        envio.usuario_destinatario == usuario or envio.usuario_destinatario is None
     )
 
+    # --- FORMULÁRIOS DE ATUALIZAÇÃO ---
     if request.method == 'POST':
+        # Remetente atualiza postagem
         if is_remetente and envio.status == 'pendente_envio':
             data_postagem = request.POST.get('data_postagem')
             previsao_chegada = request.POST.get('previsao_chegada')
@@ -657,6 +692,7 @@ def detalhe_envio(request, etiqueta):
                 messages.success(request, "Informações atualizadas com sucesso.")
                 return redirect('detalhe_envio', etiqueta=envio.etiqueta)
 
+        # Destinatário confirma recebimento
         elif is_destinatario and envio.status == 'aguardando_recebimento':
             data_chegada = request.POST.get('data_chegada')
 
@@ -669,6 +705,42 @@ def detalhe_envio(request, etiqueta):
                 messages.success(request, "Recebimento confirmado com sucesso.")
                 return redirect('detalhe_envio', etiqueta=envio.etiqueta)
 
+    context = {
+        'envio': envio,
+        'usuario': usuario,
+        'is_remetente': is_remetente,
+        'is_destinatario': is_destinatario,
+    }
+
+    return render(request, 'SRCs/detalhe_envio.html', context)
+
+@login_required
+def detalhe_envio_id(request, id):
+    usuario = Usuario.objects.filter(user=request.user).first()
+
+    if not usuario:
+        messages.error(request, "Usuário sem vínculo com unidade.")
+        return redirect('acompanhamento')
+
+    # Busca o envio pelo ID
+    envio = get_object_or_404(Envio, id=id)
+
+    # Verifica papéis
+    is_remetente = envio.remetente == usuario.unidade
+    is_destinatario = envio.destinatario == usuario.unidade and (
+        envio.usuario_destinatario == usuario or envio.usuario_destinatario is None
+    )
+
+    # --- REMETENTE CADASTRA ETIQUETA ---
+    if request.method == 'POST' and is_remetente and not envio.etiqueta:
+        nova_etiqueta = request.POST.get('etiqueta')
+        if nova_etiqueta:
+            envio.etiqueta = nova_etiqueta
+            envio.save()
+            messages.success(request, "Etiqueta cadastrada com sucesso!")
+            return redirect('detalhe_envio', etiqueta=envio.etiqueta)
+        else:
+            messages.error(request, "Informe a etiqueta antes de salvar.")
 
     context = {
         'envio': envio,
@@ -678,6 +750,7 @@ def detalhe_envio(request, etiqueta):
     }
 
     return render(request, 'SRCs/detalhe_envio.html', context)
+
 
 @csrf_exempt
 def editar_unidade_ajax(request, unidade_id):
@@ -814,10 +887,12 @@ def excluir_usuario(request):
 
     return JsonResponse({"error": "Método não permitido."}, status=405)
 
+@login_required
 def listar_usuarios(request):
     usuarios = Usuario.objects.filter(ativo=True).select_related('user', 'unidade')  # Evita N+1 queries
     return render(request, 'SRCs/listar_usuarios.html', {'usuarios': usuarios})
 
+@login_required
 def listar_unidades(request):
     unidades = Unidade.objects.filter(excluida=False) 
     data = [
@@ -826,6 +901,7 @@ def listar_unidades(request):
     ]
     return JsonResponse(data, safe=False)
 
+@login_required
 def detalhes_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return JsonResponse({
@@ -838,11 +914,21 @@ def detalhes_usuario(request, usuario_id):
         'unidade_nome': usuario.unidade.shopping if usuario.unidade else '',  
     })
 
+@login_required
 def alterar_foto(request):
-    if request.method == "POST" and request.FILES.get('foto'):
+    try:
         usuario = request.user.usuario
-        usuario.foto = request.FILES['foto']
-        usuario.save()
-        messages.success(request, "Foto atualizada com sucesso!")
+    except Usuario.DoesNotExist:
+        messages.error(request, "Perfil de usuário não encontrado.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    if request.method == "POST":
+        foto = request.FILES.get('foto')
+        if foto:
+            usuario.foto = foto
+            usuario.save()
+            messages.success(request, "Foto atualizada com sucesso!")
+        else:
+            messages.error(request, "Nenhuma foto selecionada.")
     return redirect(request.META.get('HTTP_REFERER', '/'))
 

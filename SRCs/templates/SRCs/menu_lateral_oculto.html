@@ -18,10 +18,13 @@
 
 <div class="menu-lateral-oculto" id="menuLateral" onmouseover="mostrarMenu()" onmouseout="ocultarMenu()">
      <ul>
-        <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+    <li>
+        <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
             <img src="{% static 'SRCs/imagens/home.png' %}" alt="Home">Menu Principal
-        </a></li>
+        </a>
+    </li>
 
+    {% if perfil == 'Admin' %}
         <li><a href="{% url 'cadastro_user' %}" class="{% if request.resolver_match.url_name == 'cadastro_user' %}active{% endif %}">
             <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">Cadastrar usuário
         </a></li>
@@ -47,13 +50,53 @@
         </a></li>
 
         <li><a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">Dashboard
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">Dashboard
         </a></li>
 
         <li><a href="{% url 'acompanhamento' %}" class="{% if request.resolver_match.url_name == 'acompanhamento' %}active{% endif %}">
             <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">Status dos envios
         </a></li>
-    </ul>
+
+    {% elif perfil == 'Analista' %}
+        <li><a href="{% url 'cadastro_envio' %}">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">Cadastrar envios
+        </a></li>
+        <li><a href="{% url 'rateio' %}">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">Consultar rateio
+        </a></li>
+        <li><a href="{% url 'dashboard' %}">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">Dashboard
+        </a></li>
+        <li><a href="{% url 'acompanhamento' %}">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">Status dos envios
+        </a></li>
+
+    {% elif perfil == 'Agente' %}
+        <li><a href="{% url 'cadastro_envio' %}">
+            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">Cadastrar envios
+        </a></li>
+        <li><a href="{% url 'rateio' %}">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">Consultar rateio
+        </a></li>
+        <li><a href="{% url 'acompanhamento' %}">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">Status dos envios
+        </a></li>
+
+    {% elif perfil == 'Supervisor' %}
+        <li><a href="{% url 'rateio' %}">
+            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">Consultar rateio
+        </a></li>
+        <li><a href="{% url 'dashboard' %}">
+            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">Dashboard
+        </a></li>
+
+    {% elif perfil == 'Cliente' %}
+        <li><a href="{% url 'acompanhamento' %}">
+            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">Status dos envios
+        </a></li>
+    {% endif %}
+</ul>
+
 </div>
 
 <script>
