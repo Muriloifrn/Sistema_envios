@@ -9,213 +9,230 @@
 </head>
 <body>
     {% include 'SRCs/icone_user.html' %}
+    
     <div class="bemvindo">
         Bem-vindo, {{ user.username }}!
     </div>
 
-<div class="menu-container">
+    <div class="menu-container">
 
-    <!-- ADMIN - vê tudo -->
-    {% if perfil == 'Admin' %}
-        <a href="{% url 'cadastro_user' %}">
-        <div class="menu-item f1">
-            <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">
-            <p>Cadastro de usuário</p>
-        </div></a>
+        <!-- ADMIN -->
+        {% if perfil == 'Admin' %}
+            <a href="{% url 'cadastro_user' %}">
+                <div class="menu-item f1">
+                    <img src="{% static 'SRCs/imagens/cad_usuario.png' %}" alt="Cadastro de Usuário">
+                    <p>Cadastro de usuário</p>
+                </div>
+            </a>
 
-        <a href="{% url 'user' %}">
-        <div class="menu-item f2">
-            <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">
-            <p>Editar usuário</p>
-        </div></a>
+            <a href="{% url 'user' %}">
+                <div class="menu-item f2">
+                    <img src="{% static 'SRCs/imagens/user.png' %}" alt="Editar Usuário">
+                    <p>Editar usuário</p>
+                </div>
+            </a>
 
-        <a href="{% url 'cadastro_unidade' %}">
-        <div class="menu-item f3">
-            <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">
-            <p>Cadastro de unidade</p>
-        </div></a>
+            <a href="{% url 'cadastro_unidade' %}">
+                <div class="menu-item f3">
+                    <img src="{% static 'SRCs/imagens/cad_unidade.png' %}" alt="Cadastro de Unidade">
+                    <p>Cadastro de unidade</p>
+                </div>
+            </a>
 
-        <a href="{% url 'unidade' %}">
-        <div class="menu-item f4">
-            <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">
-            <p>Editar unidade</p>
-        </div></a>
+            <a href="{% url 'unidade' %}">
+                <div class="menu-item f4">
+                    <img src="{% static 'SRCs/imagens/unidade.png' %}" alt="Editar Unidade">
+                    <p>Editar unidade</p>
+                </div>
+            </a>
 
-        <a href="{% url 'cadastro_envio' %}">
-        <div class="menu-item f5">
-            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
-            <p>Cadastrar envio</p>
-        </div></a>
+            <a href="{% url 'cadastro_envio' %}">
+                <div class="menu-item f5">
+                    <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+                    <p>Cadastrar envio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'rateio' %}">
-        <div class="menu-item f6">
-            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
-            <p>Consultar rateio</p>
-        </div></a>
+            <a href="{% url 'rateio' %}">
+                <div class="menu-item f6">
+                    <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+                    <p>Consultar rateio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'dashboard' %}">
-        <div class="menu-item f7">
-            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">
-            <p>Dashboard</p>
-        </div></a>
+            <a href="{% url 'dashboard' %}">
+                <div class="menu-item f7">
+                    <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Consultar dashboard">
+                    <p>Dashboard</p>
+                </div>
+            </a>
 
-        <a href="{% url 'acompanhamento' %}">
-        <div class="menu-item f8">
-            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">
-            <p>Status dos envios</p>
-        </div></a>
+            <a href="{% url 'acompanhamento' %}">
+                <div class="menu-item f8">
+                    <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Rastreia Envio">
+                    <p>Status dos envios</p>
+                </div>
+            </a>
 
-    {% elif perfil == 'Analista' %}
-        <a href="{% url 'cadastro_envio' %}">
-        <div class="menu-item f5">
-            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
-            <p>Cadastrar envio</p>
-        </div></a>
+        <!-- ANALISTA -->
+        {% elif perfil == 'Analista' %}
+            <a href="{% url 'cadastro_envio' %}">
+                <div class="menu-item f5">
+                    <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+                    <p>Cadastrar envio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'rateio' %}">
-        <div class="menu-item f6">
-            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
-            <p>Consultar rateio</p>
-        </div></a>
+            <a href="{% url 'rateio' %}">
+                <div class="menu-item f6">
+                    <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+                    <p>Consultar rateio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'dashboard' %}">
-        <div class="menu-item f7">
-            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
-            <p>Dashboard</p>
-        </div></a>
+            <a href="{% url 'dashboard' %}">
+                <div class="menu-item f7">
+                    <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
+                    <p>Dashboard</p>
+                </div>
+            </a>
 
-        <a href="{% url 'acompanhamento' %}">
-        <div class="menu-item f8">
-            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
-            <p>Status dos envios</p>
-        </div></a>
+            <a href="{% url 'acompanhamento' %}">
+                <div class="menu-item f8">
+                    <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+                    <p>Status dos envios</p>
+                </div>
+            </a>
 
-    {% elif perfil == 'Agente' %}
-        <a href="{% url 'cadastro_envio' %}">
-        <div class="menu-item f5">
-            <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
-            <p>Cadastrar envio</p>
-        </div></a>
+        <!-- AGENTE -->
+        {% elif perfil == 'Agente' %}
+            <a href="{% url 'cadastro_envio' %}">
+                <div class="menu-item f5">
+                    <img src="{% static 'SRCs/imagens/cad_envio.png' %}" alt="Cadastrar Envio">
+                    <p>Cadastrar envio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'rateio' %}">
-        <div class="menu-item f6">
-            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
-            <p>Consultar rateio</p>
-        </div></a>
+            <a href="{% url 'rateio' %}">
+                <div class="menu-item f6">
+                    <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+                    <p>Consultar rateio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'acompanhamento' %}">
-        <div class="menu-item f8">
-            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
-            <p>Status dos envios</p>
-        </div></a>
+            <a href="{% url 'acompanhamento' %}">
+                <div class="menu-item f8">
+                    <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+                    <p>Status dos envios</p>
+                </div>
+            </a>
 
-    {% elif perfil == 'Supervisor' %}
-        <a href="{% url 'rateio' %}">
-        <div class="menu-item f6">
-            <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
-            <p>Consultar rateio</p>
-        </div></a>
+        <!-- SUPERVISOR -->
+        {% elif perfil == 'Supervisor' %}
+            <a href="{% url 'rateio' %}">
+                <div class="menu-item f6">
+                    <img src="{% static 'SRCs/imagens/rateio.png' %}" alt="Consultar Rateio">
+                    <p>Consultar rateio</p>
+                </div>
+            </a>
 
-        <a href="{% url 'dashboard' %}">
-        <div class="menu-item f7">
-            <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
-            <p>Dashboard</p>
-        </div></a>
+            <a href="{% url 'dashboard' %}">
+                <div class="menu-item f7">
+                    <img src="{% static 'SRCs/imagens/dashboard.png' %}" alt="Dashboard">
+                    <p>Dashboard</p>
+                </div>
+            </a>
 
-    {% elif perfil == 'Cliente' %}
-        <a href="{% url 'acompanhamento' %}">
-        <div class="menu-item f8">
-            <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
-            <p>Status dos envios</p>
-        </div></a>
-    {% endif %}
-
-</div>
-
-<div class="quadro-envios">
-  <!-- Abas -->
-    <div class="abas-superior-retangular">
-        <div class="aba-opcao" id="aba-ultimos" onclick="mostrarAba('ultimos')">Últimos Envios</div>
-        <div class="aba-opcao" id="aba-pendentes" onclick="mostrarAba('pendentes')">Pendentes</div>
+        <!-- CLIENTE -->
+        {% elif perfil == 'Cliente' %}
+            <a href="{% url 'acompanhamento' %}">
+                <div class="menu-item f8">
+                    <img src="{% static 'SRCs/imagens/acompanhamento.png' %}" alt="Status dos envios">
+                    <p>Status dos envios</p>
+                </div>
+            </a>
+        {% endif %}
     </div>
 
+    <!-- 🔒 Só mostra para quem NÃO for Cliente -->
+    {% if perfil != 'Cliente' %}
+    <div class="quadro-envios">
+        <!-- Abas -->
+        <div class="abas-superior-retangular">
+            <div class="aba-opcao" id="aba-ultimos" onclick="mostrarAba('ultimos')">Últimos Envios</div>
+            <div class="aba-opcao" id="aba-pendentes" onclick="mostrarAba('pendentes')">Pendentes</div>
+        </div>
 
-  <!-- Conteúdo: Últimos envios -->
-  <div id="ultimos" class="aba-conteudo-tabela">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Remetente</th>
-          <th>Destinatário</th>
-          <th>Data</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for envio in ultimos_envios %}
-        <tr>
-          <td>ENV-{{ envio.id_visual }}</td>
-          <td>{{ envio.remetente }}</td>
-          <td>{{ envio.destinatario }}</td>
-          <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
-          <td>{{ envio.status }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5">Nenhum envio encontrado.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        <!-- Conteúdo: Últimos envios -->
+        <div id="ultimos" class="aba-conteudo-tabela">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Remetente</th>
+                        <th>Destinatário</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for envio in ultimos_envios %}
+                    <tr>
+                        <td>ENV-{{ envio.id_visual }}</td>
+                        <td>{{ envio.remetente }}</td>
+                        <td>{{ envio.destinatario }}</td>
+                        <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
+                        <td>{{ envio.status }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">Nenhum envio encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-  <!-- Conteúdo: Pendentes -->
-  <div id="pendentes" class="aba-conteudo-tabela" style="display: none; max-height: 250px; overflow-y: auto;">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Destinatário</th>
-          <th>Data</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for envio in pendentes %}
-        <tr>
-          <td>ENV-{{ envio.id_visual }}</td>
-          <td>{{ envio.destinatario }}</td>
-          <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
-          <td>{{ envio.status }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5">Nenhum envio pendente.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+        <!-- Conteúdo: Pendentes -->
+        <div id="pendentes" class="aba-conteudo-tabela" style="display: none; max-height: 250px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Destinatário</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for envio in pendentes %}
+                    <tr>
+                        <td>ENV-{{ envio.id_visual }}</td>
+                        <td>{{ envio.destinatario }}</td>
+                        <td>{{ envio.data_solicitacao|date:"d/m/Y" }}</td>
+                        <td>{{ envio.status }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">Nenhum envio pendente.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 
+    <script>
+        function mostrarAba(id) {
+            const abas = ['ultimos', 'pendentes'];
+            abas.forEach(nome => {
+                document.getElementById(nome).style.display = (nome === id) ? 'block' : 'none';
+            });
 
-<script>
-  function mostrarAba(id) {
-    // Alternar conteúdo das abas
-    const abas = ['ultimos', 'pendentes'];
-    abas.forEach(nome => {
-      document.getElementById(nome).style.display = (nome === id) ? 'block' : 'none';
-    });
-
-    // Alterar visual das abas
-    document.getElementById('aba-ultimos').classList.toggle('ativa', id === 'ultimos');
-    document.getElementById('aba-pendentes').classList.toggle('ativa', id === 'pendentes');
-  }
-</script>
-
-
-
-    
+            document.getElementById('aba-ultimos').classList.toggle('ativa', id === 'ultimos');
+            document.getElementById('aba-pendentes').classList.toggle('ativa', id === 'pendentes');
+        }
+    </script>
 </body>
 </html>

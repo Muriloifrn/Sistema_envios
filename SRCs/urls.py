@@ -30,6 +30,8 @@ urlpatterns = [
     path('unidades/excluir/', views.excluir_unidades_ajax, name='excluir_unidades_ajax'),
     path('unidades/listar/', views.listar_unidades, name='listar_unidades'),
     path('rateio/preencher-etiqueta/<int:envio_id>/', views.preencher_etiqueta, name='preencher_etiqueta'),
+    path('rateio/excluir/<int:envio_id>/', views.deletar_envio, name='excluir_envio'),
+
 
 
 

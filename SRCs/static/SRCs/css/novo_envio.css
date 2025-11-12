@@ -1,58 +1,74 @@
-/* Reset */
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
-
-body {
-    background: #f5f7fa;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
+/* ===== Reset ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
+/* ===== Corpo ===== */
+body.menu-fixo {
+    background: #ffffff;
+    padding: 40px 20px;
+    display: block;
+    min-height: 100vh;
+    margin-left: 220px;
+    color: #000000;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* ===== Estrutura principal ===== */
 .page-container {
-    width: 100%;
+    width: calc(100% - 260px);
     max-width: 900px;
+    margin: 0 auto;
+    padding: 0 10px;
 }
 
+/* ===== Títulos ===== */
 h1 {
     text-align: center;
     margin-bottom: 25px;
-    color: #003762;
+    font-size: 1.8rem;
+    color: #000000;
 }
 
 h2 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     margin-bottom: 15px;
-    color: #2c3e50;
+    color: #000000;
 }
 
-/* Cards */
+/* ===== Cards ===== */
 .card {
-    background: white;
+    background: #fff;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* Grid 2 colunas */
+/* ===== Grid 2 colunas ===== */
 .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
 }
 
+/* ===== Campos ===== */
 .campo {
     display: flex;
     flex-direction: column;
+    color: #000000;
 }
-
 .campo.full { grid-column: span 2; }
 .campo.small input { max-width: 100px; }
 
 .campo label {
     font-weight: 600;
     margin-bottom: 6px;
-    color: #555;
+    color: #000000;
 }
 
 .campo input,
@@ -61,6 +77,8 @@ h2 {
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 0.95rem;
+    color: #000000;
+    background-color: #fff;
     transition: border 0.3s;
 }
 
@@ -70,7 +88,7 @@ h2 {
     outline: none;
 }
 
-/* Itens */
+/* ===== Itens ===== */
 .item-form {
     display: flex;
     gap: 10px;
@@ -80,19 +98,24 @@ h2 {
 
 .remover-item {
     background: #e74c3c;
-    color: white;
+    color: #fff;
     border: none;
     padding: 8px 10px;
     border-radius: 6px;
     cursor: pointer;
     height: 38px;
+    font-weight: 600;
+}
+.remover-item:hover {
+    background: #c0392b;
 }
 
 #add-item {
     margin-top: 10px;
+    font-weight: 600;
 }
 
-/* Resumo */
+/* ===== Resumo ===== */
 .resumo {
     display: flex;
     justify-content: space-between;
@@ -101,20 +124,21 @@ h2 {
     padding: 15px 20px;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    color: #000000;
 }
 
 .resumo p {
     font-weight: bold;
     font-size: 1.1rem;
-    color: #2c3e50;
+    color: #000000;
 }
 
-/* Botões */
+/* ===== Botões ===== */
 .botoes { display: flex; gap: 10px; }
 
 .btn-principal {
     background: #3498db;
-    color: white;
+    color: #fff;
     padding: 10px 18px;
     border: none;
     border-radius: 8px;
@@ -122,12 +146,11 @@ h2 {
     font-weight: 600;
     transition: 0.3s;
 }
-
 .btn-principal:hover { background: #2980b9; }
 
 .btn-secundario {
     background: #27ae60;
-    color: white;
+    color: #fff;
     padding: 10px 18px;
     border: none;
     border-radius: 8px;
@@ -135,11 +158,11 @@ h2 {
     font-weight: 600;
     transition: 0.3s;
 }
-
 .btn-secundario:hover { background: #1e8449; }
 
+/* ===== Modal ===== */
 .modal {
-    display: block; 
+    display: block;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -149,11 +172,26 @@ h2 {
     background-color: rgba(0,0,0,0.5);
 }
 .modal-content {
-    background-color: white;
+    background-color: #fff;
     padding: 20px;
     margin: 15% auto;
     width: 300px;
     text-align: center;
     border-radius: 10px;
+    color: #000000;
 }
 
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+    body.menu-fixo {
+        margin-left: 0;
+        padding: 20px;
+    }
+    .page-container {
+        width: 100%;
+        padding: 0;
+    }
+}

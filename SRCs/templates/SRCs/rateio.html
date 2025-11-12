@@ -5,15 +5,8 @@
     <meta charset="UTF-8">
     <title>Rateio</title>
     <link rel="stylesheet" href="{% static 'SRCs/css/rateio.css' %}">
-    <style>
-        /* Destaque para envios sem etiqueta */
-        .pendente-etiqueta {
-            background-color: #fff3cd; /* amarelo suave */
-            font-weight: bold;
-        }
-    </style>
 </head>
-<body>
+<body class="menu-fixo">
 
     {% include 'SRCs/menu_lateral_oculto.html' %}
     {% include 'SRCs/icone_user.html' %}
@@ -31,15 +24,19 @@
         <div class="quadro-acoes">
             <form method="post" enctype="multipart/form-data" class="form-upload">
                 {% csrf_token %}
-                <div class="linha-escolha">
-                    <label for="arquivo" class="btn">Escolher Fatura</label>
-                    <input type="file" id="arquivo" name="fatura" style="display: none;" onchange="atualizarTextoArquivo()">
-                    <span id="nome-arquivo" class="nome-arquivo">Nenhum arquivo</span>
+                <div class="linha-acoes">
+                    <div class="esquerda">
+                        <label for="arquivo" class="btn">Escolher Fatura</label>
+                        <input type="file" id="arquivo" name="fatura" style="display: none;" onchange="atualizarTextoArquivo()">
+                        <span id="nome-arquivo" class="nome-arquivo">Nenhum arquivo selecionado</span>
+                        <button type="submit" id="btn-importar" class="btn">Importar</button>
+                        <div id="carregando" class="carregando" style="display:none;">Importando...</div>
+                    </div>
+                    <div class="direita">
+                        <a href="{% url 'exportar_rateio' %}" class="btn exportar">Exportar</a>
+                    </div>
                 </div>
-                <button type="submit" class="btn">Importar</button>
             </form>
-
-            <a href="{% url 'exportar_rateio' %}" class="btn exportar">⬇ Exportar</a>
         </div>
 
         <!-- Tabela de envios -->
@@ -53,7 +50,7 @@
                             <th>SOLICITANTE</th>
                             <th>CONTEÚDO</th>
                             <th>SERVIÇO</th>
-                            <th>DATA POSTAGEM</th>
+                            <th>DATA DA POSTAGEM</th>
                             <th>REMETENTE</th>
                             <th>DESTINATÁRIO</th>
                             <th>AÇÕES</th>
@@ -70,18 +67,28 @@
                             <td>{{ item.remetente }}</td>
                             <td>{{ item.destinatario }}</td>
                             <td>
-                                <!-- Botão abrir modal de detalhes -->
-                                <button type="button" class="btn detalhar" onclick="abrirModal('{{ forloop.counter0 }}')">Detalhar</button>
+                                <div class="acoes-botoes">
+                                    <button type="button" class="btn detalhar" onclick="abrirModal('{{ forloop.counter0 }}')">
+                                        Detalhar
+                                    </button>
 
-                                <!-- Botão para preencher etiqueta se estiver pendente -->
-                               {% if not item.etiqueta and item.id %}
+                                    {% if is_admin and item.id %}
+                                        <form method="POST" action="{% url 'excluir_envio' item.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn excluir" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este envio?')">
+                                                <img src="{% static 'SRCs/imagens/excluir.png' %}" alt="Excluir" class="icone-lixeira">
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+
+                                {% if not item.etiqueta and item.id %}
                                     <button type="button" class="btn preencher" onclick="abrirModalPreencher('{{ item.id }}')">
                                         Preencher Etiqueta
                                     </button>
                                 {% endif %}
 
-
-                                <!-- Modal de detalhes -->
+                                <!-- Modal Detalhes -->
                                 <div class="modal" id="modal-{{ forloop.counter0 }}">
                                     <div class="modal-content">
                                         <span class="close" onclick="fecharModal('{{ forloop.counter0 }}')">&times;</span>
@@ -92,22 +99,22 @@
                                             <p><strong>Conteúdo:</strong> {{ item.conteudo }}</p>
                                             <p><strong>Motivo:</strong> {{ item.motivo }}</p>
                                             <p><strong>Serviço:</strong> {{ item.servico }}</p>
-                                            <p><strong>Data Postagem:</strong> {{ item.data_postagem }}</p>
+                                            <p><strong>Data postagem:</strong> {{ item.data_postagem }}</p>
                                             <p><strong>Remetente:</strong> {{ item.remetente }}</p>
                                             <p><strong>Destinatário:</strong> {{ item.destinatario }}</p>
-                                            <p><strong>Cartão Postagem:</strong> {{ item.cartao_postagem }}</p>
-                                            <p><strong>Titular do Cartão:</strong> {{ item.titular_cartao }}</p>
-                                            <p><strong>Nº Autorização:</strong> {{ item.numero_autorizacao }}</p>
-                                            <p><strong>Etiqueta:</strong> {{ item.etiqueta|default:"PENDENTE" }}</p>
-                                            <p><strong>Unidade Postagem:</strong> {{ item.unidade_postagem }}</p>
+                                            <p><strong>Cartão postagem:</strong> {{ item.cartao_postagem }}</p>
+                                            <p><strong>Titular do cartão:</strong> {{ item.titular_cartao }}</p>
+                                            <p><strong>Código de postagem:</strong> {{ item.numero_autorizacao }}</p>
+                                            <p><strong>Código de rastreio:</strong> {{ item.etiqueta|default:"PENDENTE" }}</p>
+                                            <p><strong>Unidade postagem:</strong> {{ item.unidade_postagem }}</p>
                                             <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
                                             <p><strong>Peso:</strong> {{ item.peso }}</p>
-                                            <p><strong>Serviços Adicionais:</strong> {{ item.servico_adicionais }}</p>
-                                            <p><strong>Valor Declarado:</strong> {{ item.valor_declarado }}</p>
-                                            <p><strong>Valor Unitário:</strong> {{ item.valor_unitario }}</p>
-                                            <p><strong>Valor Líquido:</strong> {{ item.valor_liquido }}</p>
+                                            <p><strong>Serviços adicionais:</strong> {{ item.servico_adicionais }}</p>
+                                            <p><strong>Valor declarado:</strong> {{ item.valor_declarado }}</p>
+                                            <p><strong>Valor unitário:</strong> {{ item.valor_unitario }}</p>
+                                            <p><strong>Valor líquido:</strong> {{ item.valor_liquido }}</p>
                                             <p><strong>Desconto:</strong> {{ item.desconto }}</p>
-                                            <p><strong>Centro de Custo:</strong> {{ item.centro_custo }}</p>
+                                            <p><strong>Centro de custo:</strong> {{ item.centro_custo }}</p>
                                             <p><strong>Empresa:</strong> {{ item.empresa }}</p>
                                         </div>
                                     </div>
@@ -115,20 +122,19 @@
 
                                 <!-- Modal Preencher Etiqueta -->
                                 {% if not item.etiqueta and item.id %}
-                                <div class="modal" id="modal-preencher-{{ item.id }}">
-                                    <div class="modal-content">
-                                        <span class="close" onclick="fecharModalPreencher('{{ item.id }}')">&times;</span>
-                                        <h3>Preencher Etiqueta</h3>
-                                        <form action="{% url 'preencher_etiqueta' item.id %}" method="POST">
-                                            {% csrf_token %}
-                                            <label for="etiqueta">Etiqueta:</label>
-                                            <input type="text" name="etiqueta" value="" required>
-                                            <button type="submit" class="btn">Salvar</button>
-                                        </form>
+                                    <div class="modal" id="modal-preencher-{{ item.id }}">
+                                        <div class="modal-content">
+                                            <span class="close" onclick="fecharModalPreencher('{{ item.id }}')">&times;</span>
+                                            <h3>Preencher Etiqueta</h3>
+                                            <form action="{% url 'preencher_etiqueta' item.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <label for="etiqueta">Etiqueta:</label>
+                                                <input type="text" name="etiqueta" required>
+                                                <button type="submit" class="btn">Salvar</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
                                 {% endif %}
-
                             </td>
                         </tr>
                         {% empty %}
@@ -141,21 +147,21 @@
     </div>
 
     <script>
-        // Modal detalhes
-        function abrirModal(id) {
-            document.getElementById("modal-" + id).style.display = "flex";
-        }
-        function fecharModal(id) {
-            document.getElementById("modal-" + id).style.display = "none";
+        function atualizarTextoArquivo() {
+            const arquivo = document.getElementById("arquivo").files[0];
+            document.getElementById("nome-arquivo").textContent = arquivo ? arquivo.name : "Nenhum arquivo selecionado";
         }
 
-        // Modal preencher etiqueta
-        function abrirModalPreencher(id) {
-            document.getElementById("modal-preencher-" + id).style.display = "flex";
-        }
-        function fecharModalPreencher(id) {
-            document.getElementById("modal-preencher-" + id).style.display = "none";
-        }
+        document.querySelector('.form-upload').addEventListener('submit', () => {
+            document.getElementById('btn-importar').disabled = true;
+            document.getElementById('carregando').style.display = 'inline';
+        });
+
+        function abrirModal(id) { document.getElementById("modal-" + id).style.display = "flex"; }
+        function fecharModal(id) { document.getElementById("modal-" + id).style.display = "none"; }
+
+        function abrirModalPreencher(id) { document.getElementById("modal-preencher-" + id).style.display = "flex"; }
+        function fecharModalPreencher(id) { document.getElementById("modal-preencher-" + id).style.display = "none"; }
     </script>
 
 </body>

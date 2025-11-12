@@ -91,9 +91,10 @@ body.menu-oculto .menu-lateral-oculto:hover {
 
 /* ===== Títulos principais ===== */
 h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
+    font-size: 1.8rem;
+    margin-bottom: 25px;
     text-align: center;
+    color: #2c3e50;
 }
 
 /* ===== Formulário de filtros ===== */
@@ -103,52 +104,79 @@ h1 {
     gap: 10px;
     justify-content: center;
     background: #fff;
-    padding: 15px;
+    padding: 15px 20px;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     margin-bottom: 30px;
     z-index: 100;
 }
 
+/* Labels */
 .filtro-form label {
     font-weight: 600;
     font-size: 14px;
+    color: #444;
 }
 
-.filtro-form input,
-.filtro-form select,
-.filtro-form button {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+/* ===== Campos de texto e selects ===== */
+.filtro-form input[type="text"],
+.filtro-form input[type="date"],
+.filtro-form input[type="number"],
+.filtro-form select {
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
     font-size: 14px;
+    color: #000;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px 10px;
+    width: auto;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
 }
 
+/* Foco */
+.filtro-form input:focus,
+.filtro-form select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52,152,219,0.3);
+    outline: none;
+}
+
+/* ===== Botões ===== */
 .filtro-form button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
     background: #3498db;
     color: #fff;
-    border: none;
     cursor: pointer;
-    transition: 0.3s;
+    font-weight: 600;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .filtro-form button:hover {
     background: #2980b9;
+    transform: scale(1.05);
 }
 
 .btn-limpar {
     display: inline-block;
     margin-left: 10px;
-    padding: 6px 12px;
-    background-color: #ccc;
+    padding: 8px 14px;
+    background-color: #e0e0e0;
     color: #000;
-    border-radius: 4px;
+    border-radius: 8px;
     text-decoration: none;
     font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .btn-limpar:hover {
-    background-color: #aaa;
+    background-color: #bdbdbd;
+    transform: scale(1.05);
 }
 
 /* ===== Grid de gráficos ===== */
@@ -167,7 +195,7 @@ h1 {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    height: 400px; /* altura fixa */
+    height: 400px;
     display: flex;
     flex-direction: column;
 }
@@ -176,18 +204,19 @@ h1 {
     font-size: 18px;
     margin-bottom: 10px;
     text-align: center;
+    color: #2c3e50;
     flex-shrink: 0;
 }
 
 .grafico-card canvas {
-    flex-grow: 1; /* gráfico ocupa o restante do espaço */
+    flex-grow: 1;
 }
 
 /* ===== Responsividade ===== */
 @media (max-width: 900px) {
     .graficos-grid {
-        grid-template-columns: 1fr; /* 1 gráfico por linha em telas menores */
-        margin-left: 0; /* remove margem do menu */
+        grid-template-columns: 1fr;
+        margin-left: 0;
         width: 100%;
     }
 }

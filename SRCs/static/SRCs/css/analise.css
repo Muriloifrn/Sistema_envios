@@ -3,20 +3,32 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif; /* fonte igual ao segundo CSS */
+    font-size: 16px; /* tamanho igual ao segundo CSS */
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
+body.menu-fixo {
+    background-color: #f5f7fa;
     color: #333;
+    line-height: 1.6;
+    padding: 40px 20px;
+    min-height: 100vh;
+
+    display: block;        /* importante para aplicar margin-left corretamente */
+    margin-left: 220px;    /* desloca todo o corpo para o lado do menu */
+}
+
+body.menu-fixo .titulo {
+    text-align: center;
+    margin-bottom: 15px;
 }
 
 .container {
-    width: 90%;
+    width: calc(100% - 260px);
     max-width: 1100px;
-    margin: 300px;
+    margin: 0 auto;
     margin-top: 40px;
-
+    padding: 0 10px;
 }
 
 .titulo {

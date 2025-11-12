@@ -182,6 +182,8 @@ class FormularioEditarUsuario(forms.ModelForm):
         return usuario
 
 class formularioEnvio(forms.ModelForm):
+    etiqueta = forms.CharField(required=False)  # ← agora o campo é opcional
+
     class Meta:
         model = Envio
         fields = (
@@ -203,15 +205,19 @@ class formularioEnvio(forms.ModelForm):
         self.fields['destinatario'].queryset = self.fields['destinatario'].queryset.filter(excluida=False)
         
     def clean_etiqueta(self):
-        etiqueta = self.cleaned_data['etiqueta']
-        if Envio.objects.filter(etiqueta=etiqueta).exists():
+        etiqueta = self.cleaned_data.get('etiqueta')
+
+        # ⚠️ Só valida se o campo não estiver vazio
+        if etiqueta and Envio.objects.filter(etiqueta=etiqueta).exists():
             raise ValidationError("Já existe um envio com esta etiqueta.")
+
         return etiqueta
     
     def clean(self):
         cleaned_data = super().clean()
         remetente = cleaned_data.get('remetente')
         destinatario = cleaned_data.get('destinatario')
+
         if remetente and destinatario and remetente == destinatario:
             raise ValidationError("Remetente e destinatário não podem ser iguais.")
 

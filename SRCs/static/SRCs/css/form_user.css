@@ -7,33 +7,36 @@
 }
 
 /* ======== Estilo geral ======== */
-body {
-    background-color: #f5f7fa; 
-    color: #333;
+body.menu-fixo {
+    background-color: #ffffff;
+    color: #000000;
     line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding: 40px 20px;
     min-height: 100vh;
+    display: block;
+    margin-left: 220px;
+    font-size: 16px;
 }
 
 /* ======== Título ======== */
 h1 {
     font-size: 1.8rem;
     margin-bottom: 25px;
-    color: #2c3e50;
+    color: #000000;
     text-align: center;
+    font-weight: 700;
 }
 
 /* ======== Container do formulário ======== */
 .container-form {
     background: #fff;
-    width: 100%;
-    max-width: 450px;
+    width: calc(100% - 260px);
+    max-width: 800px;
+    margin: 0 auto;
     padding: 25px 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    color: #000000;
 }
 
 /* ======== Campos ======== */
@@ -41,12 +44,13 @@ h1 {
     margin-bottom: 18px;
     display: flex;
     flex-direction: column;
+    color: #000000;
 }
 
 .campo label {
     margin-bottom: 6px;
     font-weight: 600;
-    color: #444;
+    color: #000000;
 }
 
 .campo input,
@@ -55,6 +59,8 @@ h1 {
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 0.95rem;
+    color: #000000;
+    background-color: #fff;
     transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -62,8 +68,14 @@ h1 {
 .campo input:focus,
 .campo select:focus {
     border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52,152,219,0.3);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
     outline: none;
+}
+
+/* ======== Lista de requisitos da senha ======== */
+#password-requirements li {
+    color: #000000;
+    font-size: 0.9rem;
 }
 
 /* ======== Botões ======== */
@@ -75,12 +87,12 @@ button {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
     margin-right: 8px;
+    font-weight: 600;
 }
 
 button[type="submit"] {
     background: #3498db;
     color: #fff;
-    font-weight: 600;
 }
 
 button[type="submit"]:hover {
@@ -88,18 +100,17 @@ button[type="submit"]:hover {
     transform: scale(1.05);
 }
 
-button[type="reset"] {
-    background: #e0e0e0;
-    color: #333;
-    font-weight: 500;
+button[type="button"] {
+    background: #27ae60;
+    color: #fff;
 }
 
-button[type="reset"]:hover {
-    background: #bdbdbd;
+button[type="button"]:hover {
+    background: #1e8449;
     transform: scale(1.05);
 }
 
-/* ======== Mensagens de erro dos campos ======== */
+/* ======== Mensagens de erro ======== */
 .error {
     color: #e74c3c;
     font-size: 0.85rem;

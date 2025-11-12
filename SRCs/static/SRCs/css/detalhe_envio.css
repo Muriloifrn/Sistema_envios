@@ -3,12 +3,15 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
 }
 
+/* ===== Corpo ===== */
 body {
-    background: #f4f6f9;
-    color: #2c3e50;
+    background: #ffffff;
+    color: #000000;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
     padding: 20px;
 }
 
@@ -17,16 +20,28 @@ h2 {
     text-align: center;
     font-size: 1.8rem;
     margin-bottom: 20px;
-    color: #2c3e50;
+    color: #000000;
 }
 
 h3 {
     margin: 25px 0 15px;
     font-size: 1.3rem;
-    color: #34495e;
+    color: #000000;
 }
 
-/* ===== Box de informações do envio ===== */
+/* ===== Etiqueta pendente e aviso ===== */
+.etiqueta-pendente {
+    color: gray;
+}
+.aviso-pendente {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+/* ===== Box de informações ===== */
 .envio-box {
     background: #fff;
     padding: 20px;
@@ -35,21 +50,19 @@ h3 {
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     border-left: 6px solid #3498db;
 }
-
 .envio-box p {
     margin-bottom: 8px;
     font-size: 1rem;
 }
 
-/* ===== Timeline Horizontal ===== */
+/* ===== Timeline ===== */
 .timeline-horizontal {
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    margin: 50px 0 50px;
+    margin: 50px 0;
 }
-
 .timeline-horizontal::before {
     content: '';
     position: absolute;
@@ -57,34 +70,26 @@ h3 {
     left: 0;
     right: 0;
     height: 6px;
-    background: #dcdcdc; /* linha base */
+    background: #dcdcdc;
     border-radius: 3px;
-    z-index: 1;
 }
-
-/* Barra de progresso elegante */
 .timeline-progress {
     position: absolute;
     top: 12px;
     left: 0;
     height: 6px;
-    background: #f39c12; /* laranja */
+    background: #f39c12;
     border-radius: 3px;
     z-index: 2;
     width: 0%;
     transition: width 0.6s ease-in-out;
 }
-
-/* ===== Etapas ===== */
 .timeline-step {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
-    z-index: 3;
-    position: relative;
 }
-
 .timeline-step .circle {
     width: 24px;
     height: 24px;
@@ -92,42 +97,19 @@ h3 {
     background: #dcdcdc;
     border: 3px solid #fff;
     box-shadow: 0 0 0 2px #dcdcdc;
-    transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
     margin-bottom: 8px;
 }
-
 .timeline-step.completed .circle {
-    background: #f39c12; /* bolinha preenchida */
-    box-shadow: 0 0 0 2px #f39c12;
-}
-
-.timeline-step.paciente-final .circle {
-    /* bolinha da previsão de chegada só laranja no final */
     background: #f39c12;
     box-shadow: 0 0 0 2px #f39c12;
 }
-
 .timeline-step p {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-align: center;
-    margin-top: 4px;
+    color: #000000;
 }
 
-/* ===== Status da barra de progresso via Django ===== */
-.timeline-horizontal[data-progress="25"] .timeline-progress {
-    width: 25%;
-}
-.timeline-horizontal[data-progress="50"] .timeline-progress {
-    width: 50%;
-}
-.timeline-horizontal[data-progress="75"] .timeline-progress {
-    width: 75%;
-}
-.timeline-horizontal[data-progress="100"] .timeline-progress {
-    width: 100%;
-}
-
-/* ====== Formulários ====== */
+/* ===== Formulários ===== */
 form {
     background: #fff;
     padding: 20px;
@@ -136,14 +118,13 @@ form {
     max-width: 400px;
     margin-top: 15px;
 }
-
 form label {
     font-weight: bold;
     display: block;
     margin-bottom: 6px;
-    color: #34495e;
+    color: #000000;
 }
-
+form input[type="text"],
 form input[type="date"] {
     width: 100%;
     padding: 8px 10px;
@@ -151,8 +132,8 @@ form input[type="date"] {
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 0.95rem;
+    color: #000000;
 }
-
 form button {
     background: #3498db;
     color: #fff;
@@ -164,7 +145,6 @@ form button {
     cursor: pointer;
     transition: background 0.2s;
 }
-
 form button:hover {
     background: #2980b9;
 }
@@ -174,7 +154,6 @@ form button:hover {
     .timeline-horizontal {
         flex-direction: column;
         align-items: flex-start;
-        margin-bottom: 40px;
     }
     .timeline-step {
         flex-direction: row;
@@ -183,12 +162,5 @@ form button:hover {
     .timeline-step p {
         margin-left: 12px;
         text-align: left;
-    }
-    .timeline-horizontal::before,
-    .timeline-progress {
-        top: 12px;
-        left: 12px;
-        width: 6px;
-        height: 100%;
     }
 }

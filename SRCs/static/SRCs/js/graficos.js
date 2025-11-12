@@ -31,25 +31,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // ====== Gráficos ======
     const graficoEnvio = new Chart(document.getElementById('graficoEnvios').getContext('2d'), {
         type: 'bar',
-        data: { labels: enviosLabels, datasets: [{ label: 'Envios por mês', data: enviosValores, backgroundColor: '#002748', borderColor: '#002748', borderWidth: 1 }] },
+        data: { labels: enviosLabels, datasets: [{ label: 'Envios por mês', data: enviosValores, backgroundColor: '#79aa2b', borderColor: '#79aa2b', borderWidth: 1 }] },
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 
     const graficoRemetentes = new Chart(document.getElementById('graficoRemetentes').getContext('2d'), {
         type: 'bar',
-        data: { labels: remetentesLabels, datasets: [{ label: 'Envios por loja (remetente)', data: remetentesValores, backgroundColor: '#002748', borderColor: '#002748', borderWidth: 1 }] },
+        data: { labels: remetentesLabels, datasets: [{ label: 'Envios por loja (remetente)', data: remetentesValores, backgroundColor: '#d70367', borderColor: '#d70367', borderWidth: 1 }] },
         options: { responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
     });
 
     const graficoDestinatarios = new Chart(document.getElementById('graficoDestinatarios').getContext('2d'), {
         type: 'bar',
-        data: { labels: destinatariosLabels, datasets: [{ label: 'Envios recebidos (destinatário)', data: destinatariosValores, backgroundColor: '#002748', borderColor: '#002748', borderWidth: 1 }] },
+        data: { labels: destinatariosLabels, datasets: [{ label: 'Envios recebidos (destinatário)', data: destinatariosValores, backgroundColor: '#6d2d86', borderColor: '#6d2d86', borderWidth: 1 }] },
         options: { responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
     });
 
     const graficoGastos = new Chart(document.getElementById('graficoGastosUnidade').getContext('2d'), {
         type: 'bar',
-        data: { labels: gastosLabels, datasets: [{ label: 'Gastos (R$) por unidade', data: gastosValores, backgroundColor: 'rgba(#002748', borderColor: '#002748', borderWidth: 1 }] },
+        data: { labels: gastosLabels, datasets: [{ label: 'Gastos (R$) por unidade', data: gastosValores, backgroundColor: '#efc600', borderColor: '#efc600', borderWidth: 1 }] },
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 

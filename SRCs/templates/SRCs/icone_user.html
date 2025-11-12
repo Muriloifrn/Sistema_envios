@@ -5,25 +5,31 @@
          alt="Usuário" class="user-icon" onclick="toggleMenu()" />
 
     <div id="userDropdown" class="dropdown-content">
-        <p><strong>{{ request.user.username }}</strong></p>
-        <p>{{ request.user.email }}</p>
-        <p>Perfil: {{ request.user.groups.first.name|default:"-" }}</p>
+        <div class="user-header">
+            <img src="{% if request.user.usuario.foto %}{{ request.user.usuario.foto.url }}{% else %}{% static 'SRCs/imagens/user-icon.png' %}{% endif %}" 
+                 alt="Usuário" class="dropdown-avatar" />
+            <div class="user-info">
+                <p class="username">{{ request.user.username }}</p>
+                <p class="email">{{ request.user.email }}</p>
+                <p class="perfil">Perfil: {{ request.user.groups.first.name|default:"-" }}</p>
+            </div>
+        </div>
 
-        <!-- formulário escondido que será submetido -->
+        <hr>
+
         <form id="form-alterar-foto" action="{% url 'alterar_foto' %}" method="post" enctype="multipart/form-data" style="display:none;">
             {% csrf_token %}
             <input type="file" id="input-foto" name="foto" accept="image/*">
         </form>
 
-        <!-- este link só abre o seletor de arquivo -->
-        <a href="#" onclick="document.getElementById('input-foto').click(); return false;">Alterar Foto</a>
-        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" style="background: none; border: none; color: #333; font-weight: bold; cursor: pointer; width: 100%; text-align: left; padding: 8px;">
-            Sair
+        <button class="btn-azul" onclick="document.getElementById('input-foto').click(); return false;">
+            Alterar Foto
         </button>
-    </form>
 
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="btn-vermelho">Sair</button>
+        </form>
     </div>
 </div>
 
@@ -32,9 +38,8 @@ function toggleMenu() {
     document.getElementById("userDropdown").classList.toggle("show");
 }
 
-// quando o usuário escolher um arquivo, envia o form automaticamente
 document.addEventListener('DOMContentLoaded', function() {
-    var input = document.getElementById('input-foto');
+    const input = document.getElementById('input-foto');
     if (input) {
         input.addEventListener('change', function() {
             if (this.files && this.files.length) {
@@ -44,66 +49,151 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// fecha dropdown clicando fora (se já implementado)
 document.addEventListener("click", function(event) {
-    var menu = document.getElementById("userDropdown");
-    var icon = document.querySelector(".user-icon");
+    const menu = document.getElementById("userDropdown");
+    const icon = document.querySelector(".user-icon");
     if (!icon.contains(event.target) && !menu.contains(event.target)) {
         menu.classList.remove("show");
     }
 });
 </script>
 
-
 <style>
+/* ===== MENU DO USUÁRIO ===== */
 .user-menu {
-    position: fixed; 
-    top: 10px;       
-    right: 10px;     
-    display: inline-block;
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    z-index: 100;
 }
 
-
+/* ===== ÍCONE DO USUÁRIO ===== */
 .user-icon {
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid #ccc;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.user-icon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+}
+
+/* ===== DROPDOWN ===== */
 .dropdown-content {
     display: none;
     position: absolute;
     right: 0;
-    background-color: white;
-    min-width: 180px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    border-radius: 8px;
-    padding: 10px;
-    z-index: 10;
+    margin-top: 10px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    min-width: 260px;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-in-out;
+    padding: 12px 16px 18px;
+    border-top: 4px solid #003762;
 }
 
-.dropdown-content p {
-    margin: 5px 0;
-    font-size: 14px;
+/* ===== CABEÇALHO DO USUÁRIO ===== */
+.user-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
 }
 
-.dropdown-content a {
+.dropdown-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.username {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0;
+    color: #003762;
+}
+
+.email, .perfil {
+    font-size: 13px;
+    color: #555;
+    margin: 0;
+}
+
+/* ===== BOTÕES ===== */
+.btn-azul,
+.btn-vermelho {
     display: block;
-    padding: 8px;
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
+/* Azul - Alterar Foto */
+.btn-azul {
+    background-color: #003762;
 }
 
+.btn-azul:hover {
+    background-color: #0056a3;
+    transform: scale(1.03);
+}
+
+/* Vermelho - Sair */
+.btn-vermelho {
+    background-color: #e74c3c;
+}
+
+.btn-vermelho:hover {
+    background-color: #c0392b;
+    transform: scale(1.03);
+}
+
+/* ===== ANIMAÇÕES ===== */
 .show {
     display: block;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== LINHA DIVISÓRIA ===== */
+.dropdown-content hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 10px 0;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 600px) {
+    .user-menu {
+        right: 10px;
+        top: 10px;
+    }
+
+    .dropdown-content {
+        right: -40px;
+        min-width: 220px;
+    }
+}
 </style>
-
-

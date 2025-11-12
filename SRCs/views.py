@@ -22,6 +22,8 @@ from .utils import gerar_pdf_declaracao
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django import forms
+from django.contrib.auth.models import User
+
 
 
 
@@ -47,7 +49,12 @@ def home(request):
     usuario_logado = Usuario.objects.get(user=request.user)
 
     ultimos_envios = Envio.objects.all().order_by('-data_solicitacao')[:4]
-    pendentes = Envio.objects.filter(usuario_destinatario=usuario_logado, status='Pendente')
+
+
+    pendentes = Envio.objects.filter(
+        user=request.user,
+        status='pendente_envio'
+    ).order_by('-data_solicitacao')
 
     return render(request, 'SRCs/home.html', {
         'ultimos_envios': ultimos_envios,
@@ -107,8 +114,6 @@ def cadastro_user(request):
         form = formularioUser()
     
     return render(request, 'SRCs/form_user.html', {'form': form})
-
-from django.contrib import messages
 
 def importar_unidade(request):
     if request.method == 'POST' and request.FILES.get('arquivo_excel'):
@@ -239,7 +244,7 @@ def cadastro_envio(request):
             if request.POST.get("gerar_pdf") == "sim":
                 return gerar_pdf_declaracao(envio)
 
-            return redirect('home')
+            return redirect('cadastro_envio')
     else:
         form = formularioEnvio()
         formset = ItemEnvioFormSet(prefix='form')
@@ -259,16 +264,23 @@ class PreencherEtiquetaForm(forms.ModelForm):
         }
 
 def preencher_etiqueta(request, envio_id):
-    envio = get_object_or_404(Envio, id_visual=envio_id)  # usa id_visual ou pk conforme seu model
+    envio = get_object_or_404(Envio, pk=envio_id)
+
     if request.method == 'POST':
-        form = PreencherEtiquetaForm(request.POST, instance=envio)
-        if form.is_valid():
-            form.save()
-            return redirect('rateio')
-    else:
-        form = PreencherEtiquetaForm(instance=envio)
-    
-    return render(request, 'SRCs/preencher_etiqueta.html', {'form': form, 'envio': envio})
+        etiqueta = request.POST.get('etiqueta', '').strip()
+
+        # 🔍 Verifica se já existe outro envio com a mesma etiqueta
+        if Envio.objects.filter(etiqueta=etiqueta).exclude(id=envio.id).exists():
+            messages.error(request, "Este código de rastreio já está em uso em outro envio.")
+            return redirect('rateio')  # volta para a página de rateio
+
+        # ✅ Se não existir duplicidade, salva a etiqueta
+        envio.etiqueta = etiqueta   
+        envio.save()
+        messages.success(request, "Código de rastreio preenchida com sucesso!")
+        return redirect('rateio')
+
+    return redirect('rateio')
 
 # Função auxiliar para converter valores em decimal de forma segura
 def safe_decimal(valor):
@@ -323,8 +335,6 @@ def rateio(request):
                     if not envio:
                         print(f"[INFO] Etiqueta '{etiqueta_valor}' não encontrada. Criando rateio sem envio.")
 
-
-
                     # Aqui vai o try de criação do rateio
                     try:
 
@@ -370,6 +380,14 @@ def rateio(request):
     else:
         form = UploadFaturaForm()
     
+    is_admin = False
+    try:
+        is_admin = getattr(getattr(request.user, 'usuario', None), 'perfil', '') == 'Admin'
+    except Exception:
+        is_admin = False
+
+
+
     # Busca envios e rateios para exibição na página
     envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
     rateios = Rateio.objects.select_related('etiqueta').all()
@@ -454,46 +472,44 @@ def rateio(request):
         })
 
     # Renderiza a página com os dados e o formulário de upload
-    return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos}) 
+    return render(request, 'SRCs/rateio.html', {'form': form, 'dados': dados_completos, 'is_admin': is_admin}) 
 
 def exportar_rateio(request):
-    #Mostra os dados completos 
-    envios = Envio.objects.select_related('user', 'remetente', 'destinatario').all().order_by('-data_solicitacao')
-    rateios = Rateio.objects.select_related('etiqueta').all()
+    envios = Envio.objects.select_related('user', 'remetente', 'destinatario').prefetch_related('itens').order_by('-data_solicitacao')
+    rateios = {r.etiqueta_id: r for r in Rateio.objects.select_related('etiqueta').all()}
 
-    etiquetas_processadas = set()
     dados_completos = []
 
     for envio in envios:
-        rateio = Rateio.objects.filter(etiqueta=envio).order_by('-id').first()
+        rateio = rateios.get(envio.id)
         dados_completos.append({
             'fatura': rateio.fatura if rateio else 'PENDENTE',
             'solicitante': envio.user.get_full_name() or envio.user.username,
-            'motivo': envio.motivo,  # <- agora é o campo correto do Envio
-            'itens': ", ".join([f"{item.conteudo} ({item.quantidade}x)" for item in envio.itens.all()]), # lista de itens
+            'motivo': envio.motivo,
+            'itens': ", ".join(str(item) for item in envio.itens.all()),
             'cartao_postagem': getattr(envio.user, 'cartao_postagem', ''),
-            'titular_cartao': rateio.titular_cartao if rateio else '',
-            'servico': rateio.servico if rateio else '',
+            'titular_cartao': getattr(rateio, 'titular_cartao', ''),
+            'servico': getattr(rateio, 'servico', ''),
             'numero_autorizacao': envio.numero_autorizacao,
             'etiqueta': envio.etiqueta,
-            'data_postagem': rateio.data_postagem if rateio else '',
-            'unidade_postagem': rateio.unidade_postagem if rateio else '',
+            'data_postagem': getattr(rateio, 'data_postagem', ''),
+            'unidade_postagem': getattr(rateio, 'unidade_postagem', ''),
             'remetente': envio.remetente.shopping,
             'destinatario': envio.destinatario.shopping,
-            'valor_declarado': rateio.valor_declarado if rateio else '',
-            'valor_unitario': rateio.valor_unitario if rateio else '',
+            'valor_declarado': getattr(rateio, 'valor_declarado', ''),
+            'valor_unitario': getattr(rateio, 'valor_unitario', ''),
             'quantidade': envio.itens.aggregate(total=Sum('quantidade'))['total'] or '',
-            'peso': rateio.peso if rateio else '',
-            'servico_adicionais': rateio.servico_adicionais if rateio else '',
-            'valor_liquido': rateio.valor_liquido if rateio else '',
-            'desconto': rateio.desconto if rateio else '',
+            'peso': getattr(rateio, 'peso', ''),
+            'servico_adicionais': getattr(rateio, 'servico_adicionais', ''),
+            'valor_liquido': getattr(rateio, 'valor_liquido', ''),
+            'desconto': getattr(rateio, 'desconto', ''),
             'centro_custo': envio.destinatario.centro_custo,
             'empresa': envio.destinatario.empresa,
         })
 
-    for rateio in rateios:
-        if rateio.etiqueta and rateio.etiqueta.etiqueta in etiquetas_processadas:
-            continue
+    # adiciona rateios sem envio
+    etiquetas_processadas = {envio.id for envio in envios}
+    for rateio in Rateio.objects.exclude(etiqueta_id__in=etiquetas_processadas):
         dados_completos.append({
             'fatura': rateio.fatura,
             'solicitante': '',
@@ -537,99 +553,143 @@ def exportar_rateio(request):
     wb.save(response)
     return response
 
+def is_admin_user(user):
+    """Retorna True se o usuário logado for perfil Admin"""
+    try:
+        return getattr(getattr(user, 'usuario', None), 'perfil', '') == 'Admin'
+    except Exception:
+        return False
+
+@login_required
+def deletar_envio(request, envio_id):
+    """Permite exclusão de envio apenas para administradores"""
+    if not is_admin_user(request.user):
+        messages.error(request, 'Apenas administradores podem excluir envios.')
+        return redirect('rateio')
+
+    envio = get_object_or_404(Envio, id=envio_id)
+
+    if request.method == 'POST':
+        envio.delete()
+        messages.success(request, 'Envio excluído com sucesso.')
+        return redirect('rateio')
+
+    # caso alguém acesse via GET, apenas redireciona
+    return redirect('rateio')
+
 # View do painel de gráficos
 @login_required
 @permission_required('SRCs.consultar_dashboard', raise_exception=True)
 def dashboard(request):
-
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
-    unidade_id = request.GET.get('unidade')
-    usuario_id = request.GET.get('usuario')
+    unidade_id = request.GET.get('filtro_unidade')
+    usuario_id = request.GET.get('filtro_usuario')
 
     rateios = Rateio.objects.exclude(data_postagem=None)
     envios = Envio.objects.all()
 
-    # Aplicar filtros de data
+    # ===== Aplicar filtros =====
     if data_inicio:
         rateios = rateios.filter(data_postagem__gte=data_inicio)
         envios = envios.filter(data_solicitacao__gte=data_inicio)
+
     if data_fim:
         rateios = rateios.filter(data_postagem__lte=data_fim)
         envios = envios.filter(data_solicitacao__lte=data_fim)
+
     if unidade_id:
-        envios = envios.filter(remetente_id=unidade_id)  # ou destinatario_id
+        envios = envios.filter(remetente_id=unidade_id)
+        rateios = rateios.filter(etiqueta__remetente_id=unidade_id)
+
     if usuario_id:
         envios = envios.filter(user_id=usuario_id)
+        rateios = rateios.filter(etiqueta__user_id=usuario_id)
 
-    # ===== Gráfico 1: Quantidade de envios por mês =====
+
+    # ===== Dados base =====
+    unidades = Unidade.objects.all()
+    usuarios_list = Usuario.objects.filter(ativo=True).select_related('user')
+
+    context = {
+        'rateios': rateios,
+        'envios': envios,
+        'unidades': unidades,
+        'usuarios_list': usuarios_list,
+    }
+
+    # ===== Gráfico 1 =====
     dados = (
-        rateios
-        .annotate(mes=TruncMonth('data_postagem'))
+        rateios.annotate(mes=TruncMonth('data_postagem'))
         .values('mes')
         .annotate(qtd=Count('id'))
         .order_by('mes')
     )
     labels = [f"{item['mes'].strftime('%b/%Y')}" for item in dados]
     valores = [item['qtd'] for item in dados]
-
-    context = {
+    context.update({
         'labels': json.dumps(labels),
         'valores': json.dumps(valores),
-    }
+    })
 
-    # ===== Gráfico 2: Envios por unidade remetente =====
+    # ===== Gráfico 2 =====
     envios_por_remetente = (
-        envios
-        .values('remetente__shopping')
+        envios.values('remetente__shopping')
         .annotate(total=Count('etiqueta'))
         .order_by('-total')
     )
     remetentes = [item['remetente__shopping'] or "Não informado" for item in envios_por_remetente]
     envios_qtd = [item['total'] for item in envios_por_remetente]
-    context['remetentes'] = json.dumps(remetentes)
-    context['qtd_envios'] = json.dumps(envios_qtd)
+    context.update({
+        'remetentes': json.dumps(remetentes),
+        'qtd_envios': json.dumps(envios_qtd),
+    })
 
-    # ===== Gráfico 3: Envios por unidade destinatária =====
+    # ===== Gráfico 3 =====
     envios_por_destinatario = (
-        envios
-        .values('destinatario__shopping')
+        envios.values('destinatario__shopping')
         .annotate(total=Count('etiqueta'))
         .order_by('-total')
     )
     destinatarios = [item.get('destinatario__shopping') or 'Não informado' for item in envios_por_destinatario]
     destinatarios_qtd = [item.get('total', 0) for item in envios_por_destinatario]
-    context['destinatarios'] = json.dumps(destinatarios)
-    context['qtd_destinatarios'] = json.dumps(destinatarios_qtd)
+    context.update({
+        'destinatarios': json.dumps(destinatarios),
+        'qtd_destinatarios': json.dumps(destinatarios_qtd),
+    })
 
-    # ===== Gráfico 4: Gastos por unidade destinatária =====
+    # ===== Gráfico 4 =====
     gastos_por_destinatario = (
-        rateios
-        .filter(etiqueta__destinatario__isnull=False)
+        rateios.filter(etiqueta__destinatario__isnull=False)
         .values('etiqueta__destinatario__shopping')
         .annotate(total_gasto=Sum('valor_liquido'))
         .order_by('-total_gasto')
     )
     unidades_destino = [item.get('etiqueta__destinatario__shopping') or 'Não informado' for item in gastos_por_destinatario]
     valores_gastos = [float(item.get('total_gasto') or 0) for item in gastos_por_destinatario]
-    context['unidades_destino'] = json.dumps(unidades_destino)
-    context['valores_gastos'] = json.dumps(valores_gastos)
+    context.update({
+        'unidades_destino': json.dumps(unidades_destino),
+        'valores_gastos': json.dumps(valores_gastos),
+    })
 
-    # ===== Gráfico 5: Quantidade de envios por usuário =====
+    # ===== Gráfico 5 =====
     envios_por_usuario = (
-        envios
-        .values('user__username')
+        envios.values('user__username')
         .annotate(total=Count('etiqueta'))
         .order_by('-total')
     )
     usuarios = [item.get('user__username') or 'Desconhecido' for item in envios_por_usuario]
     qtd_envios_usuario = [item.get('total') for item in envios_por_usuario]
-    context['usuarios'] = json.dumps(usuarios)                # <=== faltava
-    context['qtd_envios_usuario'] = json.dumps(qtd_envios_usuario)  # <=== faltava
+    context.update({
+        'usuarios': json.dumps(usuarios),
+        'qtd_envios_usuario': json.dumps(qtd_envios_usuario),
+    })
 
-    # ===== Listas para filtros =====
-    context['unidades'] = Unidade.objects.all().order_by('shopping')
-    context['usuarios_todos'] = Usuario.objects.select_related('user').all().order_by('user__username')
+    # ===== Dados para filtros =====
+    context.update({
+        'unidades': Unidade.objects.all().order_by('shopping'),
+        'usuarios_todos': Usuario.objects.select_related('user').all().order_by('user__username'),
+    })
 
     return render(request, 'SRCs/graficos.html', context)
 
@@ -750,7 +810,6 @@ def detalhe_envio_id(request, id):
     }
 
     return render(request, 'SRCs/detalhe_envio.html', context)
-
 
 @csrf_exempt
 def editar_unidade_ajax(request, unidade_id):

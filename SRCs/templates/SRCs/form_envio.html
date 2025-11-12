@@ -7,7 +7,7 @@
     <title>Cadastrar Envio</title>
     <link rel="stylesheet" href="{% static 'SRCs/css/novo_envio.css' %}">
 </head>
-<body>
+<body class="menu-fixo">
     {% include 'SRCs/menu_lateral_oculto.html' %}
     {% include 'SRCs/icone_user.html' %}
     
@@ -22,11 +22,11 @@
                 <h2>Dados do Envio</h2>
                 <div class="grid-2">
                     <div class="campo">
-                        <label for="{{ form.etiqueta.id_for_label }}">Etiqueta</label>
+                        <label for="{{ form.etiqueta.id_for_label }}">Código de rastreio</label>
                         {{ form.etiqueta }}
                     </div>
                     <div class="campo">
-                        <label for="{{ form.numero_autorizacao.id_for_label }}">Nº Autorização</label>
+                        <label for="{{ form.numero_autorizacao.id_for_label }}">Código de postagem</label>
                         {{ form.numero_autorizacao }}
                     </div>
                     <div class="campo">

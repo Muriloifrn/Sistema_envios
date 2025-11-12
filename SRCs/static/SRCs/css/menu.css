@@ -1,9 +1,17 @@
+/* ===== PADRONIZAÇÃO DE FONTES ===== */
+* {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
 /* ===== MENU LATERAL ===== */
 
-/* Menu lateral fixo ou oculto */
+/* Estrutura geral */
 .menu-lateral-oculto {
     position: fixed;
     top: 0;
+    left: 0;
     width: 220px;
     height: 100vh;
     background-color: #003762;
@@ -14,12 +22,12 @@
     overflow-y: auto;
 }
 
-/* Menu oculto por padrão */
+/* Menu oculto */
 body.menu-oculto .menu-lateral-oculto {
     left: -220px;
 }
 
-/* Menu oculto aparece ao passar o mouse */
+/* Aparece ao passar o mouse */
 body.menu-oculto .menu-lateral-oculto:hover {
     left: 0;
 }
@@ -29,7 +37,7 @@ body.menu-fixo .menu-lateral-oculto {
     left: 0;
 }
 
-/* Lista dentro do menu */
+/* Lista de opções */
 .menu-lateral-oculto ul {
     list-style: none;
     padding: 0;
@@ -40,7 +48,7 @@ body.menu-fixo .menu-lateral-oculto {
     padding: 10px 20px;
 }
 
-/* Links do menu */
+/* Links */
 .menu-lateral-oculto a {
     display: flex;
     align-items: center;
@@ -48,27 +56,30 @@ body.menu-fixo .menu-lateral-oculto {
     color: white;
     text-decoration: none;
     padding: 10px;
-    font-size: 16px;
-    transition: background 0.3s;
+    font-size: 16px; /* Mesma base da home */
+    font-weight: 500;
+    transition: background 0.3s, transform 0.2s;
 }
 
 .menu-lateral-oculto a:hover {
     background-color: #002748;
     border-radius: 4px;
+    transform: translateX(3px);
 }
 
 .menu-lateral-oculto a img {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
 }
 
+/* Link ativo */
 .menu-lateral-oculto a.active {
     background-color: orange;
     border-radius: 4px;
     color: white;
 }
 
-/* ===== BOTÃO DO MENU (TOGGLE) ===== */
+/* ===== BOTÃO DO MENU ===== */
 .menu-toggle {
     position: fixed;
     top: 10px;
@@ -80,4 +91,14 @@ body.menu-fixo .menu-lateral-oculto {
 .menu-toggle img.icone-menu {
     width: 40px;
     height: auto;
+}
+
+/* ===== SCROLLBAR PERSONALIZADA ===== */
+.menu-lateral-oculto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.menu-lateral-oculto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
 }

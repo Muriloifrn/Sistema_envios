@@ -38,9 +38,13 @@
         <select name="filtro_usuario" id="filtro_usuario">
             <option value="">Todos</option>
             {% for usuario in usuarios_list %}
-                <option value="{{ usuario.id }}" {% if request.GET.filtro_usuario == usuario.id|stringformat:"s" %}selected{% endif %}>{{ usuario.username }}</option>
+                <option value="{{ usuario.user.id }}" {% if request.GET.filtro_usuario == usuario.user.id|stringformat:"s" %}selected{% endif %}>
+                    {{ usuario.user.get_full_name|default:usuario.user.username }}
+                </option>
             {% endfor %}
         </select>
+
+
 
         <button type="submit">Filtrar</button>
         <a href="{% url 'dashboard' %}" class="btn-limpar">Limpar</a>

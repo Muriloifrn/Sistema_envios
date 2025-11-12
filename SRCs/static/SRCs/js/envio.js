@@ -10,17 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ======== Adicionar item ========
     addItemBtn.addEventListener("click", () => {
-        // Descobre quantos formulários existem
         const totalForms = document.querySelectorAll(".item-form").length;
         const managementForm = document.querySelector("#id_form-TOTAL_FORMS");
 
-        // Clona o template e substitui __prefix__ pelo índice correto
         let newForm = emptyFormTemplate.replace(/__prefix__/g, totalForms);
         formsetContainer.insertAdjacentHTML("beforeend", newForm);
 
-        // Atualiza TOTAL_FORMS
         managementForm.value = totalForms + 1;
-
         atualizarTotal();
     });
 
@@ -29,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target.classList.contains("remover-item")) {
             e.target.closest(".item-form").remove();
 
-            // Recalcula TOTAL_FORMS
             const forms = document.querySelectorAll(".item-form");
             document.querySelector("#id_form-TOTAL_FORMS").value = forms.length;
 
@@ -37,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ======== Atualizar total ao digitar ========
+    // ======== Atualizar total ========
     formsetContainer.addEventListener("input", atualizarTotal);
 
     function atualizarTotal() {
@@ -50,19 +45,19 @@ document.addEventListener("DOMContentLoaded", () => {
         totalGeralEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // ======== Perguntar sobre PDF antes de enviar ========
-    btnSalvar.addEventListener("click", () => {
+    // ======== Perguntar sobre PDF ========
+    btnSalvar.addEventListener("click", (e) => {
+        e.preventDefault(); // ✅ impede envio automático
         const gerar = confirm("Deseja gerar PDF de declaração de conteúdo?");
         gerarPdfInput.value = gerar ? "sim" : "nao";
-        form.submit();
+        form.submit(); // ✅ envia de verdade
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // ======== Fechar modal de sucesso ========
     const btnOk = document.getElementById('btnModalOk');
-    if(btnOk){
+    if (btnOk) {
         btnOk.addEventListener('click', () => {
             document.getElementById('modal-sucesso').style.display = 'none';
         });
     }
-});
 });
